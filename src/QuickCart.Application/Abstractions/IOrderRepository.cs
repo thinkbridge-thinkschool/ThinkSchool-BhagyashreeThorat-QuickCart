@@ -1,4 +1,4 @@
-using QuickCart.Domain.Aggregates;
+using QuickCart.Domain.Ordering.Aggregates;
 
 namespace QuickCart.Application.Abstractions;
 

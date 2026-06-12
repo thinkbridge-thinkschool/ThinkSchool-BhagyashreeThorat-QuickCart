@@ -1,5 +1,6 @@
 using QuickCart.Application.Abstractions;
-using QuickCart.Domain.Aggregates;
+using QuickCart.Domain.Ordering.Aggregates;
+using QuickCart.Domain.Ordering.Entities;
 
 namespace QuickCart.Application.Orders;
 

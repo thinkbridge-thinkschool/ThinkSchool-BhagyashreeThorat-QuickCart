@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using QuickCart.Application.Abstractions;
-using QuickCart.Domain.Aggregates;
+using QuickCart.Domain.Ordering.Aggregates;
 
 namespace QuickCart.Infrastructure.Persistence;
 

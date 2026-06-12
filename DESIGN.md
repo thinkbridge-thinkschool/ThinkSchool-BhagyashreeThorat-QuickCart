@@ -1,6 +1,6 @@
 # QuickCart — One-Page Design (Day 22 Capstone)
 
-**Product slice:** Checkout & Ordering for a small e-commerce store.
+**Product slice:** Checkout & Ordering for QuickCart, a quick-commerce platform that delivers groceries and daily essentials within minutes.
 A customer submits an order; the system reserves stock, takes payment, then confirms
 and notifies the customer.
 
@@ -8,6 +8,10 @@ and notifies the customer.
 internal modules separated by bounded context. Dependencies point **inward** toward the
 Domain; contexts talk to each other through **domain events**, not direct calls — so they
 can later be split into services with minimal change.
+
+Each bounded context owns its own domain model, events, and business rules. This keeps
+module boundaries explicit, reduces coupling, and aligns the codebase with Domain-Driven
+Design principles while remaining a modular monolith.
 
 ---
 
@@ -64,6 +68,16 @@ build step.)
 3. Confirm & notify  (reacts to PaymentSucceededEvent)
    Ordering:       Order.MarkPaid()
    Notifications:  send order-confirmation to customer
+
+4. Cancellation flow (planned)
+
+   PaymentFailed or StockUnavailable
+           ↓
+   Order.Cancel()
+           ↓
+   Release reservation
+           ↓
+   Notify customer
 ```
 
 Failure paths (planned): payment failure / stock shortage → release reservation →
@@ -76,10 +90,21 @@ Failure paths (planned): payment failure / stock shortage → release reservatio
 ```
 QuickCart.slnx
 ├─ src/
-│  ├─ QuickCart.Domain          # Aggregates, entities, events — no dependencies
-│  │   ├─ Aggregates/Order.cs
-│  │   ├─ Events/OrderCreatedEvent.cs, PaymentSucceededEvent.cs
-│  │   └─ Common/IDomainEvent.cs
+│  ├─ QuickCart.Domain          # Bounded-context ownership — no dependencies
+│  │   ├─ Ordering              # Core context (implemented)
+│  │   │   ├─ Aggregates/Order.cs
+│  │   │   ├─ Entities/OrderLine.cs
+│  │   │   ├─ Enums/OrderStatus.cs
+│  │   │   ├─ Events/OrderCreatedEvent.cs, PaymentSucceededEvent.cs
+│  │   │   └─ ValueObjects/
+│  │   ├─ Catalog               # Entities/, Events/        (planned)
+│  │   ├─ Inventory             # Entities/, Events/        (planned)
+│  │   ├─ Payments              # Entities/, Events/        (planned)
+│  │   ├─ Notifications         # Entities/                 (planned)
+│  │   └─ Shared                # Cross-context building blocks
+│  │       ├─ Common/IDomainEvent.cs
+│  │       ├─ Abstractions/
+│  │       └─ Exceptions/
 │  ├─ QuickCart.Application      # Use cases + ports        → Domain
 │  │   ├─ Abstractions/IOrderRepository.cs
 │  │   └─ Orders/OrderService.cs

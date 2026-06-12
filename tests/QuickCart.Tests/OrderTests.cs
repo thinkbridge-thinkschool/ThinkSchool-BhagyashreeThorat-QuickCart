@@ -1,5 +1,7 @@
-using QuickCart.Domain.Aggregates;
-using QuickCart.Domain.Events;
+using QuickCart.Domain.Ordering.Aggregates;
+using QuickCart.Domain.Ordering.Entities;
+using QuickCart.Domain.Ordering.Enums;
+using QuickCart.Domain.Ordering.Events;
 
 namespace QuickCart.Tests;
 

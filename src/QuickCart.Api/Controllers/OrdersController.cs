@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using QuickCart.Application.Orders;
 using QuickCart.Contracts.Orders;
-using QuickCart.Domain.Aggregates;
+using QuickCart.Domain.Ordering.Aggregates;
+using QuickCart.Domain.Ordering.Entities;
 
 namespace QuickCart.Api.Controllers;
 

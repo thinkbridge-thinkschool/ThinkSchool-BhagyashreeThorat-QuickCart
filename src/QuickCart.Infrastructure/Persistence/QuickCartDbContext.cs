@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using QuickCart.Domain.Aggregates;
+using QuickCart.Domain.Ordering.Aggregates;
 
 namespace QuickCart.Infrastructure.Persistence;
 
