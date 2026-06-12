@@ -1,0 +1,9 @@
+using QuickCart.Domain.Common;
+
+namespace QuickCart.Domain.Events;
+
+/// <summary>Raised when payment for an order has cleared. Drives the async "confirm order / notify customer" flow.</summary>
+public sealed record PaymentSucceededEvent(
+    Guid OrderId,
+    decimal AmountPaid,
+    DateTime OccurredOnUtc) : IDomainEvent;

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/QuickCart.Api/QuickCart.Api.csproj" />
+    <Project Path="src/QuickCart.Application/QuickCart.Application.csproj" />
+    <Project Path="src/QuickCart.Contracts/QuickCart.Contracts.csproj" />
+    <Project Path="src/QuickCart.Domain/QuickCart.Domain.csproj" />
+    <Project Path="src/QuickCart.Infrastructure/QuickCart.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/QuickCart.Tests/QuickCart.Tests.csproj" />
+  </Folder>
+</Solution>
