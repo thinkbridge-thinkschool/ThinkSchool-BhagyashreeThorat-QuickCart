@@ -45,7 +45,7 @@ resource plan 'Microsoft.Web/serverfarms@2024-04-01' = {
 resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   name: webAppName
   location: location
-  tags: tags
+  tags: union(tags, { 'azd-service-name': 'api' })
   identity: {
     type: 'SystemAssigned' // ready for managed-identity auth later
   }
