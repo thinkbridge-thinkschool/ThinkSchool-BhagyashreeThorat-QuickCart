@@ -45,21 +45,15 @@ resource queue 'Microsoft.ServiceBus/namespaces/queues@2024-01-01' = {
   }
 }
 
-// App-facing send/listen authorization rule (kept off the root RootManageSharedAccessKey).
-resource authRule 'Microsoft.ServiceBus/namespaces/authorizationRules@2024-01-01' = {
-  parent: namespace
-  name: 'QuickCartApp'
-  properties: {
-    rights: [
-      'Send'
-      'Listen'
-    ]
-  }
-}
+// No SAS authorization rule and no listKeys() — the app authenticates with its
+// managed identity (RBAC: Azure Service Bus Data Sender/Receiver, granted in rbac.bicep).
+// Nothing here ever emits a connection string, so there is no secret to leak.
 
 @description('Namespace resource id.')
 output namespaceId string = namespace.id
 
-@description('Service Bus connection string for the app (Send + Listen).')
-@secure()
-output connectionString string = authRule.listKeys().primaryConnectionString
+@description('Namespace name (used to build the fully-qualified namespace for DefaultAzureCredential).')
+output namespaceName string = namespace.name
+
+@description('Fully-qualified namespace, e.g. sb-quickcart-dev-xxxx.servicebus.windows.net.')
+output fullyQualifiedNamespace string = '${namespace.name}.servicebus.windows.net'

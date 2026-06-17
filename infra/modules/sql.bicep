@@ -17,6 +17,12 @@ param administratorLogin string
 @secure()
 param administratorLoginPassword string
 
+@description('Entra (Azure AD) admin login name, e.g. your UPN/email.')
+param aadAdminLogin string
+
+@description('Entra (Azure AD) admin object id (the GUID from az ad signed-in-user show).')
+param aadAdminObjectId string
+
 @description('Database SKU name, e.g. Basic, S0, GP_S_Gen5_1.')
 param databaseSkuName string = 'Basic'
 
@@ -39,6 +45,15 @@ resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
     version: '12.0'
     minimalTlsVersion: '1.2'
     publicNetworkAccess: 'Enabled'
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      login: aadAdminLogin
+      sid: aadAdminObjectId
+      tenantId: tenant().tenantId
+      principalType: 'User'
+      // azureADOnlyAuthentication intentionally omitted — it can't be set inline when
+      // updating an existing server; mixed auth (the default) is what we want anyway.
+    }
   }
 }
 
@@ -74,6 +89,5 @@ output serverId string = sqlServer.id
 @description('Fully qualified server name, e.g. myserver.database.windows.net.')
 output fullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName
 
-@description('ADO.NET connection string for the app.')
-@secure()
-output connectionString string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${administratorLogin};Password=${administratorLoginPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+@description('Passwordless ADO.NET connection string (Managed Identity via "Authentication=Active Directory Default"). No secret — safe to surface as a plain output.')
+output connectionString string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${databaseName};Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Default;'

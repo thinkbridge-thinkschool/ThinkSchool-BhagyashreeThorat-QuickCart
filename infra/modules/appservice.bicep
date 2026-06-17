@@ -15,13 +15,20 @@ param skuName string = 'B1'
 @description('.NET runtime stack for the Linux Web App.')
 param linuxFxVersion string = 'DOTNETCORE|10.0'
 
-@description('SQL connection string injected as ConnectionStrings__DefaultConnection.')
-@secure()
+@description('Passwordless SQL connection string (Managed Identity). Contains no secret.')
 param sqlConnectionString string
 
-@description('Service Bus connection string injected as app setting.')
-@secure()
-param serviceBusConnectionString string
+@description('Service Bus fully-qualified namespace, e.g. sb-...servicebus.windows.net. Not a secret.')
+param serviceBusFullyQualifiedNamespace string
+
+@description('Key Vault reference URI for the ExternalApiKey secret (versionless). Resolved at runtime via the app MI.')
+param keyVaultSecretUri string
+
+@description('Entra (Azure AD) tenant id for app auth. Public identifier, not a secret.')
+param entraTenantId string
+
+@description('Entra (Azure AD) app registration client id for app auth. Public identifier, not a secret.')
+param entraClientId string = ''
 
 @description('ASPNETCORE_ENVIRONMENT value (Development / Production).')
 param aspNetCoreEnvironment string = 'Production'
@@ -62,9 +69,25 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           name: 'ASPNETCORE_ENVIRONMENT'
           value: aspNetCoreEnvironment
         }
+        // Service Bus over Managed Identity: just the namespace, no SAS key.
         {
-          name: 'ServiceBus__ConnectionString'
-          value: serviceBusConnectionString
+          name: 'ServiceBus__FullyQualifiedNamespace'
+          value: serviceBusFullyQualifiedNamespace
+        }
+        // Entra ID app auth — public identifiers only, never secrets.
+        {
+          name: 'AzureAd__TenantId'
+          value: entraTenantId
+        }
+        {
+          name: 'AzureAd__ClientId'
+          value: entraClientId
+        }
+        // Key Vault reference: App Service resolves this via its MI at runtime.
+        // The app setting stores only the pointer, never the secret value.
+        {
+          name: 'ExternalApiKey'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretUri})'
         }
       ]
       connectionStrings: [

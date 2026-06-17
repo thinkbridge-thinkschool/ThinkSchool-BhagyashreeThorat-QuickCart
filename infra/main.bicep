@@ -21,6 +21,12 @@ param sqlAdministratorLogin string
 @secure()
 param sqlAdministratorLoginPassword string
 
+@description('Entra admin login (UPN/email) for the SQL server.')
+param aadAdminLogin string
+
+@description('Entra admin object id for the SQL server.')
+param aadAdminObjectId string
+
 // --- SKUs (overridden per environment via .bicepparam) ---
 @description('App Service Plan SKU.')
 param appServicePlanSku string = 'B1'
@@ -33,6 +39,9 @@ param sqlDatabaseSkuTier string = 'Basic'
 
 @description('Service Bus namespace SKU.')
 param serviceBusSku string = 'Standard'
+
+@description('Entra (Azure AD) app registration client id for API auth. Public identifier, not a secret. Leave empty until the app registration exists.')
+param entraClientId string = ''
 
 // --- Naming ---
 // A short suffix keeps globally-unique names (web app, SQL server, SB namespace) collision-free.
@@ -64,8 +73,19 @@ module sql 'modules/sql.bicep' = {
     location: location
     administratorLogin: sqlAdministratorLogin
     administratorLoginPassword: sqlAdministratorLoginPassword
+    aadAdminLogin: aadAdminLogin
+    aadAdminObjectId: aadAdminObjectId
     databaseSkuName: sqlDatabaseSkuName
     databaseSkuTier: sqlDatabaseSkuTier
+    tags: tags
+  }
+}
+
+module keyVault 'modules/keyvault.bicep' = {
+  name: 'keyVault'
+  params: {
+    keyVaultName: 'kv-${environmentName}-${suffix}'
+    location: location
     tags: tags
   }
 }
@@ -78,9 +98,23 @@ module appService 'modules/appservice.bicep' = {
     location: location
     skuName: appServicePlanSku
     sqlConnectionString: sql.outputs.connectionString
-    serviceBusConnectionString: serviceBus.outputs.connectionString
+    serviceBusFullyQualifiedNamespace: serviceBus.outputs.fullyQualifiedNamespace
+    keyVaultSecretUri: '${keyVault.outputs.vaultUri}secrets/ExternalApiKey/'
+    entraTenantId: tenant().tenantId
+    entraClientId: entraClientId
     aspNetCoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
     tags: tags
+  }
+}
+
+// Grant the app's managed identity its data-plane roles (Service Bus + Key Vault).
+// Runs after appService because it consumes the web app's principalId.
+module rbac 'modules/rbac.bicep' = {
+  name: 'rbac'
+  params: {
+    principalId: appService.outputs.principalId
+    serviceBusNamespaceName: serviceBus.outputs.namespaceName
+    keyVaultName: keyVault.outputs.vaultName
   }
 }
 
@@ -92,3 +126,9 @@ output sqlServerFqdn string = sql.outputs.fullyQualifiedDomainName
 
 @description('Service Bus namespace id.')
 output serviceBusNamespaceId string = serviceBus.outputs.namespaceId
+
+@description('Key Vault URI — set the ExternalApiKey secret here after deploy.')
+output keyVaultUri string = keyVault.outputs.vaultUri
+
+@description('Web app managed identity principal id.')
+output webAppPrincipalId string = appService.outputs.principalId
