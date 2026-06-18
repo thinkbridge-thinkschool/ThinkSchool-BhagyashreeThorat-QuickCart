@@ -90,6 +90,16 @@ module keyVault 'modules/keyvault.bicep' = {
   }
 }
 
+module monitoring 'modules/monitoring.bicep' = {
+  name: 'monitoring'
+  params: {
+    workspaceName: 'log-${namePrefix}-${suffix}'
+    appInsightsName: 'appi-${namePrefix}-${suffix}'
+    location: location
+    tags: tags
+  }
+}
+
 module appService 'modules/appservice.bicep' = {
   name: 'appService'
   params: {
@@ -102,17 +112,34 @@ module appService 'modules/appservice.bicep' = {
     keyVaultSecretUri: '${keyVault.outputs.vaultUri}secrets/ExternalApiKey/'
     entraTenantId: tenant().tenantId
     entraClientId: entraClientId
+    appInsightsConnectionString: monitoring.outputs.connectionString
     aspNetCoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
     tags: tags
   }
 }
 
-// Grant the app's managed identity its data-plane roles (Service Bus + Key Vault).
-// Runs after appService because it consumes the web app's principalId.
+// Worker (Service Bus consumer) shares the API's App Service Plan.
+module worker 'modules/appservice-worker.bicep' = {
+  name: 'worker'
+  params: {
+    webAppName: 'wrk-${namePrefix}-${suffix}'
+    location: location
+    planId: appService.outputs.planId
+    sqlConnectionString: sql.outputs.connectionString
+    serviceBusFullyQualifiedNamespace: serviceBus.outputs.fullyQualifiedNamespace
+    appInsightsConnectionString: monitoring.outputs.connectionString
+    aspNetCoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
+    tags: tags
+  }
+}
+
+// Grant both managed identities their data-plane roles (Service Bus + Key Vault).
+// Runs after the apps because it consumes their principalIds.
 module rbac 'modules/rbac.bicep' = {
   name: 'rbac'
   params: {
     principalId: appService.outputs.principalId
+    workerPrincipalId: worker.outputs.principalId
     serviceBusNamespaceName: serviceBus.outputs.namespaceName
     keyVaultName: keyVault.outputs.vaultName
   }
@@ -132,3 +159,15 @@ output keyVaultUri string = keyVault.outputs.vaultUri
 
 @description('Web app managed identity principal id.')
 output webAppPrincipalId string = appService.outputs.principalId
+
+@description('Worker app URL (health endpoint).')
+output workerUrl string = 'https://${worker.outputs.defaultHostName}'
+
+@description('Worker managed identity principal id — needs a SQL contained user too.')
+output workerPrincipalId string = worker.outputs.principalId
+
+@description('Application Insights resource id.')
+output appInsightsId string = monitoring.outputs.appInsightsId
+
+@description('Log Analytics workspace id — alert rules query this.')
+output logAnalyticsWorkspaceId string = monitoring.outputs.workspaceId

@@ -11,14 +11,24 @@ namespace QuickCart.Application.Orders;
 public sealed class OrderService
 {
     private readonly IOrderRepository _orders;
+    private readonly IOrderEventPublisher _publisher;
 
-    public OrderService(IOrderRepository orders) => _orders = orders;
+    public OrderService(IOrderRepository orders, IOrderEventPublisher publisher)
+    {
+        _orders = orders;
+        _publisher = publisher;
+    }
 
     public async Task<Order> CreateOrderAsync(Guid customerId, IEnumerable<OrderLine> lines, CancellationToken ct = default)
     {
         var order = Order.Create(customerId, lines, DateTime.UtcNow);
         await _orders.AddAsync(order, ct);
         await _orders.SaveChangesAsync(ct);
+
+        // Hand off the rest of the flow (payment) to the Worker via Service Bus.
+        // The Azure SDK stamps the current trace context onto the message, so the
+        // consumer span stitches into the same distributed trace as this request.
+        await _publisher.PublishOrderCreatedAsync(order, ct);
         return order;
     }
 

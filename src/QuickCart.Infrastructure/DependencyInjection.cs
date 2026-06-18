@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuickCart.Application.Abstractions;
+using QuickCart.Infrastructure.Messaging;
 using QuickCart.Infrastructure.Persistence;
 
 namespace QuickCart.Infrastructure;
@@ -37,11 +38,21 @@ public static class DependencyInjection
         // configured (cloud). DefaultAzureCredential uses the App Service MI in Azure and
         // the developer's az-login locally — never a SAS key.
         var serviceBusNamespace = configuration["ServiceBus:FullyQualifiedNamespace"];
+        var queueName = configuration["ServiceBus:QueueName"] ?? "order-events";
         if (!string.IsNullOrWhiteSpace(serviceBusNamespace))
         {
             services.AddSingleton(_ => new ServiceBusClient(
                 serviceBusNamespace,
                 new DefaultAzureCredential()));
+
+            // Cloud: publish ordering events over Service Bus (Managed Identity).
+            services.AddSingleton<IOrderEventPublisher>(sp =>
+                new ServiceBusOrderEventPublisher(sp.GetRequiredService<ServiceBusClient>(), queueName));
+        }
+        else
+        {
+            // Local dev / tests: no broker, so order creation just skips the publish.
+            services.AddSingleton<IOrderEventPublisher, NullOrderEventPublisher>();
         }
 
         services.AddScoped<IOrderRepository, OrderRepository>();

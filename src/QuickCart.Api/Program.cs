@@ -1,12 +1,32 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
+using OpenTelemetry.Resources;
 using QuickCart.Application.Orders;
 using QuickCart.Infrastructure;
+
+// Azure SDK messaging tracing (Service Bus send/process spans) is still experimental and
+// off by default. Enabling it makes the publish a tracked dependency and the consumer a
+// child span — the link that puts API and Worker on one distributed trace. Must be set
+// before any ServiceBusClient is created.
+AppContext.SetSwitch("Azure.Experimental.EnableActivitySource", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+
+// OpenTelemetry → Application Insights. The distro auto-instruments incoming ASP.NET Core
+// requests, outbound HttpClient/SqlClient (dependencies), and the Azure SDK (Service Bus),
+// and reads the connection string from APPLICATIONINSIGHTS_CONNECTION_STRING. Enabled only
+// when that setting exists, so local dev stays free of telemetry noise.
+if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+{
+    builder.Services
+        .AddOpenTelemetry()
+        .ConfigureResource(r => r.AddService("quickcart-api"))
+        .UseAzureMonitor();
+}
 
 // Entra ID (Azure AD) app auth. Enabled whenever an AzureAd:ClientId is configured
 // (i.e. in the cloud, supplied via app settings). Local dev with no ClientId stays open

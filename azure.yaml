@@ -10,3 +10,7 @@ services:
     project: ./src/QuickCart.Api
     language: dotnet
     host: appservice
+  worker:
+    project: ./src/QuickCart.Worker
+    language: dotnet
+    host: appservice

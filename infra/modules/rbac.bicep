@@ -2,8 +2,11 @@
 // Runs last because it needs the web app's principalId (only known after the app deploys).
 // This is what replaces every connection-string secret with identity + RBAC.
 
-@description('Principal id of the App Service system-assigned managed identity.')
+@description('Principal id of the API App Service system-assigned managed identity.')
 param principalId string
+
+@description('Principal id of the Worker App Service system-assigned managed identity.')
+param workerPrincipalId string
 
 @description('Service Bus namespace name to scope the data-plane roles to.')
 param serviceBusNamespaceName string
@@ -50,6 +53,17 @@ resource kvSecretsUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', kvSecretsUserRoleId)
     principalId: principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// The Worker only consumes from the queue, so it gets Data Receiver (least privilege).
+resource workerSbReceiver 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(sbNamespace.id, workerPrincipalId, sbDataReceiverRoleId)
+  scope: sbNamespace
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', sbDataReceiverRoleId)
+    principalId: workerPrincipalId
     principalType: 'ServicePrincipal'
   }
 }

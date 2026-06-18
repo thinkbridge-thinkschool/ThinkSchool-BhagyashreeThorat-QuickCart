@@ -33,6 +33,9 @@ param entraClientId string = ''
 @description('ASPNETCORE_ENVIRONMENT value (Development / Production).')
 param aspNetCoreEnvironment string = 'Production'
 
+@description('Application Insights connection string for OpenTelemetry export. Not a secret.')
+param appInsightsConnectionString string = ''
+
 @description('Resource tags applied to every resource.')
 param tags object = {}
 
@@ -89,6 +92,11 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           name: 'ExternalApiKey'
           value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretUri})'
         }
+        // OpenTelemetry → Application Insights. The distro reads this connection string.
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsightsConnectionString
+        }
       ]
       connectionStrings: [
         {
@@ -100,6 +108,9 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
     }
   }
 }
+
+@description('App Service Plan resource id — shared with the Worker app.')
+output planId string = plan.id
 
 @description('Web App resource id.')
 output webAppId string = webApp.id
