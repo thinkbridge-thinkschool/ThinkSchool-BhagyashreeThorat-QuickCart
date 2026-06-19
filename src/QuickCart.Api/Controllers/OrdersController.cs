@@ -3,11 +3,13 @@ using QuickCart.Application.Orders;
 using QuickCart.Contracts.Orders;
 using QuickCart.Domain.Ordering.Aggregates;
 using QuickCart.Domain.Ordering.Entities;
+using Asp.Versioning;
 
 namespace QuickCart.Api.Controllers;
 
 [ApiController]
-[Route("api/orders")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/orders")]
 public sealed class OrdersController : ControllerBase
 {
     private readonly OrderService _orders;
@@ -15,6 +17,7 @@ public sealed class OrdersController : ControllerBase
     public OrdersController(OrderService orders) => _orders = orders;
 
     [HttpPost]
+    [RequestSizeLimit(64 * 1024)]
     public async Task<ActionResult<OrderResponse>> Create(CreateOrderRequest request, CancellationToken ct)
     {
         var lines = request.Lines.Select(l => new OrderLine(l.ProductId, l.ProductName, l.UnitPrice, l.Quantity));
@@ -26,7 +29,9 @@ public sealed class OrdersController : ControllerBase
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
-            return BadRequest(ex.Message);
+            // Domain invariant violation that slipped past DTO validation → 400 ProblemDetails
+            // (RFC 7807) carrying our own controlled message, never a stack trace.
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status400BadRequest, title: "Invalid order request");
         }
     }
 

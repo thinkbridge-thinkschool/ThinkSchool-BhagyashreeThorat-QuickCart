@@ -2,6 +2,7 @@ using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using OpenTelemetry.Resources;
+using QuickCart.Api.OpenApi;
 using QuickCart.Application.Orders;
 using QuickCart.Infrastructure;
 
@@ -13,8 +14,35 @@ AppContext.SetSwitch("Azure.Experimental.EnableActivitySource", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+// Request size limits (DoS hardening). The global Kestrel cap is the backstop for every
+// endpoint; actions tighten it further with [RequestSizeLimit]. AddServerHeader=false stops
+// Kestrel advertising its name/version (information disclosure).
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 1 * 1024 * 1024; // 1 MB
+    options.AddServerHeader = false;
+});
+
+// OpenAPI with the Entra bearer scheme described in the document (auth is enforced by the
+// FallbackPolicy below; the transformer makes that contract visible to clients).
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 builder.Services.AddControllers();
+
+// RFC 7807 ProblemDetails for error responses, including unhandled exceptions surfaced via
+// UseExceptionHandler — so no raw exception text or stack trace ever leaks to the caller.
+builder.Services.AddProblemDetails();
+
+builder.Services
+    .AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    })
+    .AddMvc();
 
 // OpenTelemetry → Application Insights. The distro auto-instruments incoming ASP.NET Core
 // requests, outbound HttpClient/SqlClient (dependencies), and the Azure SDK (Service Bus),
@@ -52,12 +80,34 @@ builder.Services.AddScoped<OrderService>();
 
 var app = builder.Build();
 
+// Any unhandled exception becomes a ProblemDetails response (no stack trace leaks).
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    // Tell browsers to use HTTPS only (HSTS). Dev is excluded so localhost over http works.
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
+
+// Baseline security response headers on every response. Addresses the common OWASP ZAP
+// baseline findings (missing CSP, X-Content-Type-Options, anti-clickjacking, etc.). The API
+// returns JSON only, so a deny-all CSP is safe and there is no UI to break.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+    headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+    headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()";
+    await next();
+});
 
 if (entraEnabled)
 {

@@ -43,6 +43,12 @@ param serviceBusSku string = 'Standard'
 @description('Entra (Azure AD) app registration client id for API auth. Public identifier, not a secret. Leave empty until the app registration exists.')
 param entraClientId string = ''
 
+@description('Deploy the VNet + private endpoints for SQL and Key Vault, and integrate the App Service/Worker into the VNet.')
+param enablePrivateNetworking bool = true
+
+@description('Disable public network access on SQL and Key Vault. Leave false for the first deploy (so migrations/seed can reach SQL); flip to true once the private endpoint is validated.')
+param disablePublicNetworkAccess bool = false
+
 // --- Naming ---
 // A short suffix keeps globally-unique names (web app, SQL server, SB namespace) collision-free.
 var suffix = uniqueString(resourceGroup().id)
@@ -77,6 +83,7 @@ module sql 'modules/sql.bicep' = {
     aadAdminObjectId: aadAdminObjectId
     databaseSkuName: sqlDatabaseSkuName
     databaseSkuTier: sqlDatabaseSkuTier
+    publicNetworkAccess: disablePublicNetworkAccess ? 'Disabled' : 'Enabled'
     tags: tags
   }
 }
@@ -86,6 +93,20 @@ module keyVault 'modules/keyvault.bicep' = {
   params: {
     keyVaultName: 'kv-${environmentName}-${suffix}'
     location: location
+    publicNetworkAccess: disablePublicNetworkAccess ? 'Disabled' : 'Enabled'
+    tags: tags
+  }
+}
+
+// Private networking for the data tier (SQL + Key Vault). Consumes the SQL/KV resource ids,
+// so it runs after those modules. Service Bus is excluded by design (needs Premium tier).
+module network 'modules/network.bicep' = if (enablePrivateNetworking) {
+  name: 'network'
+  params: {
+    namePrefix: namePrefix
+    location: location
+    sqlServerId: sql.outputs.serverId
+    keyVaultId: keyVault.outputs.vaultId
     tags: tags
   }
 }
@@ -114,6 +135,9 @@ module appService 'modules/appservice.bicep' = {
     entraClientId: entraClientId
     appInsightsConnectionString: monitoring.outputs.connectionString
     aspNetCoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
+    // Guarded by the same condition as the network module, so the output is only read when it exists.
+    #disable-next-line BCP318
+    vnetIntegrationSubnetId: enablePrivateNetworking ? network.outputs.appSubnetId : ''
     tags: tags
   }
 }
@@ -129,6 +153,9 @@ module worker 'modules/appservice-worker.bicep' = {
     serviceBusFullyQualifiedNamespace: serviceBus.outputs.fullyQualifiedNamespace
     appInsightsConnectionString: monitoring.outputs.connectionString
     aspNetCoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
+    // Guarded by the same condition as the network module, so the output is only read when it exists.
+    #disable-next-line BCP318
+    vnetIntegrationSubnetId: enablePrivateNetworking ? network.outputs.appSubnetId : ''
     tags: tags
   }
 }

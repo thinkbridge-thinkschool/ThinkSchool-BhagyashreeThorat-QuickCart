@@ -26,6 +26,9 @@ param appInsightsConnectionString string
 @description('ASPNETCORE_ENVIRONMENT value (Development / Production).')
 param aspNetCoreEnvironment string = 'Production'
 
+@description('Regional VNet integration subnet id. When set, outbound traffic to SQL flows through the VNet so the private-endpoint DNS resolves. Empty = no integration.')
+param vnetIntegrationSubnetId string = ''
+
 @description('Resource tags applied to every resource.')
 param tags object = {}
 
@@ -39,11 +42,14 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   properties: {
     serverFarmId: planId
     httpsOnly: true
+    // Regional VNet integration so the consumer reaches SQL over its private endpoint.
+    virtualNetworkSubnetId: empty(vnetIntegrationSubnetId) ? null : vnetIntegrationSubnetId
     siteConfig: {
       linuxFxVersion: linuxFxVersion
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
       alwaysOn: true // keep the consumer running; without this App Service idles the process out
+      vnetRouteAllEnabled: !empty(vnetIntegrationSubnetId)
       appSettings: [
         {
           name: 'ASPNETCORE_ENVIRONMENT'

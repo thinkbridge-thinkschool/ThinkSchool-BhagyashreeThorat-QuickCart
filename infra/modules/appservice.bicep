@@ -36,6 +36,9 @@ param aspNetCoreEnvironment string = 'Production'
 @description('Application Insights connection string for OpenTelemetry export. Not a secret.')
 param appInsightsConnectionString string = ''
 
+@description('Regional VNet integration subnet id. When set, outbound traffic to SQL/Key Vault flows through the VNet so the private-endpoint DNS resolves. Empty = no integration.')
+param vnetIntegrationSubnetId string = ''
+
 @description('Resource tags applied to every resource.')
 param tags object = {}
 
@@ -62,11 +65,15 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   properties: {
     serverFarmId: plan.id
     httpsOnly: true
+    // Regional VNet integration so calls to SQL/Key Vault resolve their private endpoints.
+    virtualNetworkSubnetId: empty(vnetIntegrationSubnetId) ? null : vnetIntegrationSubnetId
     siteConfig: {
       linuxFxVersion: linuxFxVersion
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
       alwaysOn: true
+      // Route all outbound traffic through the VNet when integrated (needed for private DNS).
+      vnetRouteAllEnabled: !empty(vnetIntegrationSubnetId)
       appSettings: [
         {
           name: 'ASPNETCORE_ENVIRONMENT'

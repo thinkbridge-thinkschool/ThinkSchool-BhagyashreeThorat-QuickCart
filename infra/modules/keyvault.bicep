@@ -10,6 +10,13 @@ param keyVaultName string
 @description('Azure region.')
 param location string
 
+@description('Public network access. Set to Disabled once the private endpoint is validated.')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string = 'Enabled'
+
 @description('Resource tags applied to every resource.')
 param tags object = {}
 
@@ -26,7 +33,7 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
     enableRbacAuthorization: true // RBAC, not access policies — modern, auditable
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: publicNetworkAccess
   }
 }
 

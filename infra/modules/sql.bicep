@@ -32,6 +32,13 @@ param databaseSkuTier string = 'Basic'
 @description('Max database size in bytes.')
 param maxSizeBytes int = 2147483648 // 2 GB
 
+@description('Public network access. Set to Disabled once the private endpoint is validated; the AllowAllAzureIps firewall rule is then skipped automatically.')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string = 'Enabled'
+
 @description('Resource tags applied to every resource.')
 param tags object = {}
 
@@ -44,7 +51,7 @@ resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
     administratorLoginPassword: administratorLoginPassword
     version: '12.0'
     minimalTlsVersion: '1.2'
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: publicNetworkAccess
     administrators: {
       administratorType: 'ActiveDirectory'
       login: aadAdminLogin
@@ -72,9 +79,10 @@ resource database 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   }
 }
 
-// Allow other Azure services (e.g. the App Service) to reach the server.
-// The 0.0.0.0 sentinel rule is Azure's documented "Allow Azure services" toggle.
-resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-08-01-preview' = {
+// Allow other Azure services (e.g. the App Service) to reach the server — only while public
+// access is enabled. Once publicNetworkAccess is Disabled (private-endpoint mode), this broad
+// rule is dropped and all traffic flows through the private endpoint instead.
+resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-08-01-preview' = if (publicNetworkAccess == 'Enabled') {
   parent: sqlServer
   name: 'AllowAllAzureIps'
   properties: {
