@@ -85,7 +85,14 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
+    // Serve the OpenAPI document (/openapi/v1.json) and an interactive Swagger UI on top of
+    // it at /swagger. Dev-only: production stays free of an exposed endpoint explorer.
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "QuickCart API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
 else
 {
