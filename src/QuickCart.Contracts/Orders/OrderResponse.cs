@@ -2,14 +2,14 @@ namespace QuickCart.Contracts.Orders;
 
 /// <summary>HTTP response shape for an order.</summary>
 public sealed record OrderResponse(
-    Guid Id,
-    Guid CustomerId,
+    Guid OrderId,
+    Guid UserId,
     string Status,
-    decimal Total,
-    IReadOnlyList<OrderLineResponse> Lines,
-    DateTime CreatedAtUtc);
+    decimal TotalAmount,
+    DateTime CreatedAtUtc,
+    IReadOnlyList<OrderItemResponse> Items);
 
-public sealed record OrderLineResponse(
+public sealed record OrderItemResponse(
     Guid ProductId,
     string ProductName,
     decimal UnitPrice,

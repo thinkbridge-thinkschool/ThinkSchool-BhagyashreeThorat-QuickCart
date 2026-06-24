@@ -6,6 +6,7 @@ namespace QuickCart.Application.Abstractions;
 public interface IOrderRepository
 {
     Task AddAsync(Order order, CancellationToken ct = default);
-    Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Order?> GetByIdAsync(Guid orderId, CancellationToken ct = default);
+    Task<IReadOnlyList<Order>> GetByUserAsync(Guid userId, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }
