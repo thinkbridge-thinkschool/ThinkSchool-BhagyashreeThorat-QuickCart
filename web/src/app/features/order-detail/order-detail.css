@@ -1,0 +1,31 @@
+.back-link {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.order-header {
+  margin: 10px 0 18px;
+}
+
+.order-header h1 {
+  margin-bottom: 2px;
+}
+
+.order-header p {
+  margin: 0;
+}
+
+.cancel-bar {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.order-items-card {
+  padding: 6px 16px;
+}
+
+.order-total {
+  margin-top: 16px;
+  text-align: right;
+  font-size: 1.2rem;
+}

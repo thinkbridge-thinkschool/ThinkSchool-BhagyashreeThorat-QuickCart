@@ -1,0 +1,36 @@
+<section class="ps-section">
+  <div class="ps-header spread">
+    <h2 class="ps-title">{{ category().categoryName }}</h2>
+    <button class="ps-see-all btn-ghost" (click)="onSeeAll()">See All →</button>
+  </div>
+
+  <div class="ps-carousel" role="list">
+    @for (p of products(); track p.productId) {
+      <div class="ps-card card" role="listitem">
+        <img
+          class="ps-img"
+          [src]="p.imageUrl || placeholder"
+          (error)="onImgError($event)"
+          [alt]="p.productName" />
+        <div class="ps-body">
+          <p class="ps-name">{{ p.productName }}</p>
+          <p class="ps-price">{{ p.price | currency:'INR':'symbol':'1.0-0' }}</p>
+          <button
+            class="ps-add btn-primary"
+            [disabled]="!p.isAvailable"
+            (click)="add(p)">
+            {{ p.isAvailable ? '+' : '✕' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (products().length === 0) {
+      <p class="muted" style="padding:16px 0">No products in this category yet.</p>
+    }
+  </div>
+</section>
+
+@if (toast()) {
+  <div class="toast">{{ toast() }}</div>
+}

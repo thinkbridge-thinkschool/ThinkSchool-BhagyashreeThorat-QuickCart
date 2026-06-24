@@ -1,0 +1,94 @@
+.ps-section {
+  margin-bottom: 32px;
+}
+
+.ps-header {
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+
+.ps-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.ps-see-all {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.ps-see-all:hover { text-decoration: underline; }
+
+/* Horizontal scroll carousel */
+.ps-carousel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+}
+.ps-carousel::-webkit-scrollbar { display: none; }
+
+/* Product card — dimensions match the products grid so cards look identical
+   on both the home carousel and the /products grid view. */
+.ps-card {
+  flex: none;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  scroll-snap-align: start;
+  transition: transform 0.1s;
+}
+.ps-card:hover { transform: translateY(-2px); }
+
+.ps-img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  background: var(--surface);
+  display: block;
+}
+
+.ps-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.ps-name {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+.ps-price {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.ps-add {
+  margin-top: auto;
+  padding: 8px 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 9px;
+  width: 100%;
+  text-align: center;
+}

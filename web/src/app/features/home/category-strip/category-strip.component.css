@@ -1,0 +1,64 @@
+.strip-wrapper {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 0 28px;
+}
+
+.strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 12px 0;
+  /* hide scrollbar but keep scroll */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.strip::-webkit-scrollbar { display: none; }
+
+.cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: none;
+  width: 88px;
+  padding: 10px 6px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.cat-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand);
+}
+
+.cat-card.active {
+  border-color: var(--brand);
+  border-width: 2px;
+}
+
+.cat-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.cat-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 76px;
+}
+
+@media (max-width: 600px) {
+  .strip-wrapper { padding: 0 16px; }
+  .cat-card { width: 76px; }
+}

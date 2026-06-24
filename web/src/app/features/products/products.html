@@ -1,0 +1,51 @@
+<div class="page-header">
+  <h1>Products</h1>
+  <p class="muted">Browse and add items to your cart.</p>
+</div>
+
+<div class="row wrap chips">
+  <button class="chip" [class.btn-primary]="!selectedCategory()" (click)="selectCategory(null)">All</button>
+  @for (c of categories(); track c.categoryId) {
+    <button
+      class="chip"
+      [class.btn-primary]="selectedCategory() === c.categoryId"
+      (click)="selectCategory(c.categoryId)">
+      {{ c.categoryName }}
+    </button>
+  }
+</div>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (filtered().length === 0) {
+  <div class="card empty-state">
+    <strong>No products available.</strong>
+    <p class="muted">Try a different category or clear your search.</p>
+  </div>
+} @else {
+  <div class="grid">
+    @for (p of filtered(); track p.productId) {
+      <div class="card product-card">
+        <img
+          class="product-img"
+          [src]="p.imageUrl || placeholder"
+          (error)="onImgError($event)"
+          [alt]="p.productName" />
+        <div class="product-body">
+          <span class="badge cat">{{ categoryName(p.categoryId) }}</span>
+          <strong class="product-name">{{ p.productName }}</strong>
+          <div class="spread product-foot">
+            <strong>{{ p.price | currency:'INR':'symbol':'1.0-0' }}</strong>
+            <button class="btn-primary" [disabled]="!p.isAvailable" (click)="add(p)">
+              {{ p.isAvailable ? 'Add' : 'Out of stock' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (toast()) {
+  <div class="toast">{{ toast() }}</div>
+}

@@ -1,0 +1,51 @@
+<h1>Your cart</h1>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (!cart() || cart()!.items.length === 0) {
+  <div class="empty">Your cart is empty. <a href="/products">Browse products</a>.</div>
+} @else {
+  <div class="card cart-table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th class="num">Price</th>
+          <th>Qty</th>
+          <th class="num">Line total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of cart()!.items; track item.productId) {
+          <tr>
+            <td>{{ item.productName }}</td>
+            <td class="num">{{ item.unitPrice | currency:'INR':'symbol':'1.0-0' }}</td>
+            <td>
+              <div class="row qty-row">
+                <button (click)="changeQty(item.productId, item.quantity - 1)" [disabled]="item.quantity <= 1">−</button>
+                <span>{{ item.quantity }}</span>
+                <button (click)="changeQty(item.productId, item.quantity + 1)">+</button>
+              </div>
+            </td>
+            <td class="num">{{ item.lineTotal | currency:'INR':'symbol':'1.0-0' }}</td>
+            <td class="num">
+              <button class="btn-danger" (click)="remove(item.productId)">Remove</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="spread cart-footer">
+    <strong class="cart-total">Total: {{ cart()!.total | currency:'INR':'symbol':'1.0-0' }}</strong>
+    <button class="btn-primary" [disabled]="placing()" (click)="checkout()">
+      {{ placing() ? 'Placing order…' : 'Place Order' }}
+    </button>
+  </div>
+}
+
+@if (error()) {
+  <div class="toast">{{ error() }}</div>
+}

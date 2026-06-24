@@ -1,0 +1,23 @@
+<div class="strip-wrapper" role="navigation" aria-label="Browse by category">
+  <div class="strip">
+    <button
+      class="cat-card"
+      [class.active]="selected() === null"
+      (click)="select(null)"
+      [attr.aria-pressed]="selected() === null">
+      <span class="cat-icon">🛒</span>
+      <span class="cat-name">All</span>
+    </button>
+
+    @for (card of cards(); track card.category.categoryId) {
+      <button
+        class="cat-card"
+        [class.active]="selected() === card.category.categoryId"
+        (click)="select(card.category.categoryId)"
+        [attr.aria-pressed]="selected() === card.category.categoryId">
+        <span class="cat-icon">{{ card.icon }}</span>
+        <span class="cat-name">{{ card.category.categoryName }}</span>
+      </button>
+    }
+  </div>
+</div>

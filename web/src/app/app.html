@@ -1,0 +1,44 @@
+<header class="appbar">
+  <div class="container navbar">
+    <a class="brand" routerLink="/">QuickCart</a>
+
+    @if (auth.isAuthenticated) {
+      <div class="navsearch">
+        <input
+          type="search"
+          [(ngModel)]="term"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Search products…"
+          aria-label="Search products" />
+      </div>
+    }
+
+    <nav class="row navlinks">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      <a routerLink="/products" routerLinkActive="active">Products</a>
+      @if (auth.isAuthenticated) {
+        <a routerLink="/cart" routerLinkActive="active">Cart</a>
+        <a routerLink="/orders" routerLinkActive="active">Orders</a>
+      }
+    </nav>
+
+    <div class="row navuser">
+      @if (auth.isAuthenticated) {
+        <span class="muted username">{{ displayName() }}</span>
+        <button class="btn-ghost" (click)="logout()">Sign out</button>
+        <a routerLink="/cart" class="cart-btn" routerLinkActive="cart-btn--active" aria-label="Cart">
+          <span class="cart-icon">🛒</span>
+          @if (cartState.count() > 0) {
+            <span class="cart-badge">{{ cartState.count() > 99 ? '99+' : cartState.count() }}</span>
+          }
+        </a>
+      } @else {
+        <button class="btn-primary" (click)="login()">Sign in</button>
+      }
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>

@@ -1,0 +1,59 @@
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (!order()) {
+  <div class="empty">Order not found.</div>
+} @else {
+  <a routerLink="/orders" class="back-link muted">← Back to orders</a>
+
+  <div class="spread wrap order-header">
+    <div>
+      <h1>Order {{ order()!.orderId.slice(0, 8) }}</h1>
+      <p class="muted">Placed {{ order()!.createdAtUtc | date: 'medium' }}</p>
+    </div>
+    <span class="badge"
+      [class.ok]="order()!.status === 'Confirmed'"
+      [class.muted]="order()!.status === 'Cancelled'">
+      {{ order()!.status }}
+    </span>
+  </div>
+
+  @if (order()!.status === 'Confirmed') {
+    <div class="card spread wrap cancel-bar">
+      <span class="muted">This order has been placed. To make changes, cancel and place a new order.</span>
+      <button class="btn-danger" [disabled]="cancelling()" (click)="cancel()">
+        {{ cancelling() ? 'Cancelling…' : 'Cancel Order' }}
+      </button>
+    </div>
+  }
+
+  <div class="card order-items-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th class="num">Unit price</th>
+          <th>Qty</th>
+          <th class="num">Line total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (i of order()!.items; track i.productId) {
+          <tr>
+            <td>{{ i.productName }}</td>
+            <td class="num">{{ i.unitPrice | currency:'INR':'symbol':'1.0-0' }}</td>
+            <td>{{ i.quantity }}</td>
+            <td class="num">{{ i.lineTotal | currency:'INR':'symbol':'1.0-0' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="order-total">
+    <strong>Total: {{ order()!.totalAmount | currency:'INR':'symbol':'1.0-0' }}</strong>
+  </div>
+}
+
+@if (error()) {
+  <div class="toast">{{ error() }}</div>
+}
