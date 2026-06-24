@@ -6,64 +6,57 @@ using QuickCart.Domain.Shared.Common;
 namespace QuickCart.Domain.Ordering.Aggregates;
 
 /// <summary>
-/// Ordering aggregate root. Owns its lines, enforces its own invariants, and records
-/// domain events instead of calling other contexts directly.
+/// Ordering aggregate root. Owns its items, enforces its own invariants, and records domain
+/// events instead of calling other contexts directly. Orders belong to an authenticated user
+/// (<see cref="UserId"/>); item prices are snapshots captured from the Catalog at order time.
+/// The cart is edited before checkout, so a placed order is immutable apart from cancellation.
 /// </summary>
-public sealed class Order
+public sealed class Order : BaseEntity
 {
-    private readonly List<OrderLine> _lines = new();
+    private readonly List<OrderItem> _items = new();
     private readonly List<IDomainEvent> _domainEvents = new();
 
-    public Guid Id { get; private set; }
-    public Guid CustomerId { get; private set; }
+    public Guid OrderId { get; private set; }
+    public Guid UserId { get; private set; }
     public OrderStatus Status { get; private set; }
-    public DateTime CreatedAtUtc { get; private set; }
+    public decimal TotalAmount { get; private set; }
 
-    public IReadOnlyCollection<OrderLine> Lines => _lines.AsReadOnly();
-    public decimal Total => _lines.Sum(l => l.LineTotal);
+    public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     // EF Core
     private Order() { }
 
-    private Order(Guid id, Guid customerId, IEnumerable<OrderLine> lines, DateTime createdAtUtc)
+    private Order(Guid userId, IEnumerable<OrderItem> items, DateTime utcNow)
     {
-        Id = id;
-        CustomerId = customerId;
-        CreatedAtUtc = createdAtUtc;
-        Status = OrderStatus.Submitted;
-        _lines.AddRange(lines);
+        OrderId = Guid.NewGuid();
+        UserId = userId;
+        Status = OrderStatus.Confirmed;
+        _items.AddRange(items);
+        TotalAmount = _items.Sum(i => i.LineTotal);
+        MarkCreated(utcNow);
     }
 
-    /// <summary>Factory enforcing the "an order must have at least one line" invariant.</summary>
-    public static Order Create(Guid customerId, IEnumerable<OrderLine> lines, DateTime utcNow)
+    /// <summary>Factory enforcing the "an order must have at least one item" invariant.</summary>
+    public static Order Create(Guid userId, IEnumerable<OrderItem> items, DateTime utcNow)
     {
-        if (customerId == Guid.Empty) throw new ArgumentException("CustomerId is required.", nameof(customerId));
+        if (userId == Guid.Empty) throw new ArgumentException("UserId is required.", nameof(userId));
 
-        var materialized = lines?.ToList() ?? new List<OrderLine>();
+        var materialized = items?.ToList() ?? new List<OrderItem>();
         if (materialized.Count == 0)
-            throw new InvalidOperationException("An order must contain at least one line.");
+            throw new InvalidOperationException("An order must contain at least one item.");
 
-        var order = new Order(Guid.NewGuid(), customerId, materialized, utcNow);
-        order._domainEvents.Add(new OrderCreatedEvent(order.Id, order.CustomerId, order.Total, utcNow));
+        var order = new Order(userId, materialized, utcNow);
+        order._domainEvents.Add(new OrderCreatedEvent(order.OrderId, order.UserId, order.TotalAmount, utcNow));
         return order;
     }
 
-    public void MarkPaid(DateTime utcNow)
+    /// <summary>Cancel a placed order. Idempotent.</summary>
+    public void Cancel(DateTime utcNow)
     {
-        if (Status != OrderStatus.Submitted)
-            throw new InvalidOperationException($"Cannot pay an order in status '{Status}'.");
-
-        Status = OrderStatus.Paid;
-        _domainEvents.Add(new PaymentSucceededEvent(Id, Total, utcNow));
-    }
-
-    public void Cancel()
-    {
-        if (Status == OrderStatus.Paid)
-            throw new InvalidOperationException("A paid order cannot be cancelled.");
-
+        if (Status == OrderStatus.Cancelled) return;
         Status = OrderStatus.Cancelled;
+        MarkModified(utcNow);
     }
 
     public void ClearDomainEvents() => _domainEvents.Clear();
