@@ -12,8 +12,15 @@ public sealed class OrderRepository : IOrderRepository
 
     public async Task AddAsync(Order order, CancellationToken ct = default) => await _db.Orders.AddAsync(order, ct);
 
-    public Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        _db.Orders.FirstOrDefaultAsync(o => o.Id == id, ct);
+    // Owned items are loaded automatically as part of the aggregate.
+    public Task<Order?> GetByIdAsync(Guid orderId, CancellationToken ct = default) =>
+        _db.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId, ct);
+
+    public async Task<IReadOnlyList<Order>> GetByUserAsync(Guid userId, CancellationToken ct = default) =>
+        await _db.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAtUtc)
+            .ToListAsync(ct);
 
     public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

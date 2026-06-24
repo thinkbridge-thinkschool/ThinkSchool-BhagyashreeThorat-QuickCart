@@ -3,7 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using OpenTelemetry.Resources;
 using QuickCart.Api.OpenApi;
+using QuickCart.Api.Identity;
+using QuickCart.Application.Abstractions;
+using QuickCart.Application.Carts;
+using QuickCart.Application.Catalog;
 using QuickCart.Application.Orders;
+using QuickCart.Application.Users;
 using QuickCart.Infrastructure;
 
 // Azure SDK messaging tracing (Service Bus send/process spans) is still experimental and
@@ -67,18 +72,46 @@ if (entraEnabled)
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddMicrosoftIdentityWebApi(azureAd);
 
-    // Require an authenticated Entra principal on every endpoint by default.
+    // Require the delegated API scope on every endpoint by default — not merely an
+    // authenticated principal. This is the scope-based authorization the Day 27 threat model
+    // listed as future work. The scope name is config-driven (AzureAd:Scopes), default access_as_user.
+    var requiredScopes = (azureAd["Scopes"] ?? "access_as_user")
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
     builder.Services.AddAuthorization(options =>
     {
-        options.FallbackPolicy = options.DefaultPolicy;
+        options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .RequireScope(requiredScopes)
+            .Build();
     });
 }
 
 // Ordering context wiring (SQL + Service Bus, both via Managed Identity).
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<CatalogService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CartService>();
+
+// CORS for the Angular dev server (local dev only). The cloud frontend is served same-origin
+// or configured separately, so this policy is applied only outside production below.
+const string DevCorsPolicy = "AngularDev";
+builder.Services.AddCors(options => options.AddPolicy(DevCorsPolicy, policy => policy
+    .WithOrigins("http://localhost:4200")
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 
 var app = builder.Build();
+
+// Seed a sample catalog on first run (idempotent — no-ops if categories already exist).
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<QuickCart.Infrastructure.Persistence.QuickCartDbContext>();
+    await QuickCart.Infrastructure.Persistence.CatalogSeeder.SeedAsync(db);
+}
 
 // Any unhandled exception becomes a ProblemDetails response (no stack trace leaks).
 app.UseExceptionHandler();
@@ -87,12 +120,17 @@ if (app.Environment.IsDevelopment())
 {
     // Serve the OpenAPI document (/openapi/v1.json) and an interactive Swagger UI on top of
     // it at /swagger. Dev-only: production stays free of an exposed endpoint explorer.
-    app.MapOpenApi();
+    // AllowAnonymous: the global FallbackPolicy would otherwise require a token to fetch the
+    // document itself, so Swagger UI's spec fetch would fail with 401 before you can sign in.
+    app.MapOpenApi().AllowAnonymous();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "QuickCart API v1");
         options.RoutePrefix = "swagger";
     });
+
+    // Allow the Angular dev server to call the API in local development.
+    app.UseCors(DevCorsPolicy);
 }
 else
 {

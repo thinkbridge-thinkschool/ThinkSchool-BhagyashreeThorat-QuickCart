@@ -1,5 +1,5 @@
 using QuickCart.Application.Abstractions;
-using QuickCart.Domain.Ordering.Aggregates;
+using QuickCart.Contracts.Messaging;
 
 namespace QuickCart.Infrastructure.Messaging;
 
@@ -9,5 +9,5 @@ namespace QuickCart.Infrastructure.Messaging;
 /// </summary>
 public sealed class NullOrderEventPublisher : IOrderEventPublisher
 {
-    public Task PublishOrderCreatedAsync(Order order, CancellationToken ct = default) => Task.CompletedTask;
+    public Task PublishOrderCreatedAsync(OrderCreatedMessage message, CancellationToken ct = default) => Task.CompletedTask;
 }

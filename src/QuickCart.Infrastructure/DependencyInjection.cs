@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuickCart.Application.Abstractions;
+using QuickCart.Application.Orders;
+using QuickCart.Domain.Ordering.Events;
 using QuickCart.Infrastructure.Messaging;
 using QuickCart.Infrastructure.Persistence;
 
@@ -22,8 +24,11 @@ public static class DependencyInjection
         {
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                // Local dev / tests: no SQL configured → in-memory store.
-                options.UseInMemoryDatabase("quickcart");
+                // Local dev: no Azure SQL configured → a SQLite file. Unlike the in-memory
+                // provider, this persists carts and orders across API restarts (the in-memory
+                // store reset on every boot, which wiped the cart between adds).
+                var sqlitePath = configuration["Sqlite:DataSource"] ?? "quickcart.db";
+                options.UseSqlite($"Data Source={sqlitePath}");
             }
             else
             {
@@ -56,6 +61,14 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICartRepository, CartRepository>();
+
+        // Domain-event dispatch: recorded events → handlers → integration events.
+        services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        services.AddScoped<IDomainEventHandler<OrderCreatedEvent>, OrderCreatedEventHandler>();
         return services;
     }
 }

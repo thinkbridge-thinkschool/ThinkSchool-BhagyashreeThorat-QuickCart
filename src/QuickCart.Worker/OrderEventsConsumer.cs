@@ -52,25 +52,19 @@ public sealed class OrderEventsConsumer : BackgroundService
         var message = args.Message.Body.ToObjectFromJson<OrderCreatedMessage>()
             ?? throw new InvalidOperationException("Empty OrderCreatedMessage body.");
 
-        _logger.LogInformation("Processing order {OrderId} (total {Total})", message.OrderId, message.Total);
+        _logger.LogInformation("Processing order {OrderId} (total {Total})", message.OrderId, message.TotalAmount);
 
         // A fresh DI scope per message → a fresh DbContext, mirroring a web request's lifetime.
         await using var scope = _services.CreateAsyncScope();
         var orders = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
 
-        var order = await orders.GetByIdAsync(message.OrderId, args.CancellationToken);
-        if (order is null)
-        {
-            _logger.LogWarning("Order {OrderId} not found; completing message anyway.", message.OrderId);
-            await args.CompleteMessageAsync(args.Message, args.CancellationToken);
-            return;
-        }
-
-        order.MarkPaid(DateTime.UtcNow);
-        await orders.SaveChangesAsync(args.CancellationToken);
+        // The current scope has no payment gateway — the order is already Confirmed when placed.
+        // The Worker receives the integration event for observability (distributed tracing) and
+        // future extension (notifications, inventory reservation) without changing order status.
+        _logger.LogInformation("Order {OrderId} received for processing (total {Total}). No further status transition in current scope.",
+            message.OrderId, message.TotalAmount);
 
         await args.CompleteMessageAsync(args.Message, args.CancellationToken);
-        _logger.LogInformation("Order {OrderId} marked Paid.", message.OrderId);
     }
 
     private Task OnErrorAsync(ProcessErrorEventArgs args)
