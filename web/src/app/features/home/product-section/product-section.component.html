@@ -14,13 +14,15 @@
           [alt]="p.productName" />
         <div class="ps-body">
           <p class="ps-name">{{ p.productName }}</p>
-          <p class="ps-price">{{ p.price | currency:'INR':'symbol':'1.0-0' }}</p>
-          <button
-            class="ps-add btn-primary"
-            [disabled]="!p.isAvailable"
-            (click)="add(p)">
-            {{ p.isAvailable ? '+' : '✕' }}
-          </button>
+          <div class="spread ps-foot">
+            <strong class="ps-price">{{ p.price | currency:'INR':'symbol':'1.0-0' }}</strong>
+            <button
+              class="ps-add btn-primary"
+              [disabled]="!p.isAvailable"
+              (click)="add(p)">
+              {{ p.isAvailable ? 'Add' : 'Out of stock' }}
+            </button>
+          </div>
         </div>
       </div>
     }

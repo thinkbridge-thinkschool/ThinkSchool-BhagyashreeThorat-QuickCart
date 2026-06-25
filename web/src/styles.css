@@ -85,8 +85,8 @@ input:focus, select:focus { outline: 2px solid #c8d8ff; border-color: var(--bran
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
 }
 
 .thumb {
