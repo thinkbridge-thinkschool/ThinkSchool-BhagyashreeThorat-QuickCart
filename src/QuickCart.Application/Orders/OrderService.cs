@@ -1,4 +1,5 @@
 using QuickCart.Application.Abstractions;
+using QuickCart.Domain.Catalog.Entities;
 using QuickCart.Domain.Ordering.Aggregates;
 using QuickCart.Domain.Ordering.Entities;
 
@@ -36,7 +37,11 @@ public sealed class OrderService
         if (cart is null || cart.Items.Count == 0)
             throw new InvalidOperationException("Your cart is empty.");
 
-        var items = await ResolveItemsAsync(cart.Items.Select(i => (i.ProductId, i.Quantity)).ToList(), ct);
+        // ResolveItemsAsync already loads the products; reuse that dictionary so
+        // BuildView does not make a second round-trip to the database.
+        var (items, products) = await ResolveItemsAsync(
+            cart.Items.Select(i => (i.ProductId, i.Quantity)).ToList(), ct);
+
         var order = Order.Create(userId, items, DateTime.UtcNow);
 
         await _orders.AddAsync(order, ct);
@@ -48,16 +53,24 @@ public sealed class OrderService
         await _dispatcher.DispatchAsync(order.DomainEvents, ct);
         order.ClearDomainEvents();
 
-        return await BuildViewAsync(order, ct);
+        return BuildView(order, products);
     }
 
+    /// <summary>
+    /// Return the current user's orders, newest first.
+    /// Performance: a single product batch query is made for all orders combined,
+    /// replacing the previous N per-order queries (N+1 problem).
+    /// </summary>
     public async Task<IReadOnlyList<OrderView>> GetMyOrdersAsync(Guid userId, CancellationToken ct = default)
     {
         var orders = await _orders.GetByUserAsync(userId, ct);
-        var views = new List<OrderView>(orders.Count);
-        foreach (var order in orders)
-            views.Add(await BuildViewAsync(order, ct));
-        return views;
+        if (orders.Count == 0) return Array.Empty<OrderView>();
+
+        var allProductIds = orders.SelectMany(o => o.Items.Select(i => i.ProductId));
+        var products = (await _products.GetByIdsAsync(allProductIds, ct))
+            .ToDictionary(p => p.ProductId);
+
+        return orders.Select(o => BuildView(o, products)).ToList();
     }
 
     public async Task<OrderView?> GetByIdAsync(Guid userId, Guid orderId, CancellationToken ct = default)
@@ -80,8 +93,12 @@ public sealed class OrderService
         return await BuildViewAsync(order, ct);
     }
 
-    /// <summary>Validate each requested product against the Catalog and snapshot its current price.</summary>
-    private async Task<List<OrderItem>> ResolveItemsAsync(
+    /// <summary>
+    /// Validate each requested product against the Catalog and snapshot its current price.
+    /// Returns both the order items and the loaded product dictionary so the caller can
+    /// reuse it for BuildView without an extra database round-trip.
+    /// </summary>
+    private async Task<(List<OrderItem> items, Dictionary<Guid, Product> products)> ResolveItemsAsync(
         IReadOnlyCollection<(Guid ProductId, int Quantity)> requested, CancellationToken ct)
     {
         if (requested.Count == 0)
@@ -100,14 +117,19 @@ public sealed class OrderService
 
             items.Add(new OrderItem(product.ProductId, product.Price, quantity));
         }
-        return items;
+        return (items, products);
     }
 
+    // Used by single-order operations (GetByIdAsync, CancelAsync) where a batch is not needed.
     private async Task<OrderView> BuildViewAsync(Order order, CancellationToken ct)
     {
         var products = (await _products.GetByIdsAsync(order.Items.Select(i => i.ProductId), ct))
             .ToDictionary(p => p.ProductId);
+        return BuildView(order, products);
+    }
 
+    private static OrderView BuildView(Order order, Dictionary<Guid, Product> products)
+    {
         var lines = order.Items.Select(i =>
         {
             products.TryGetValue(i.ProductId, out var p);

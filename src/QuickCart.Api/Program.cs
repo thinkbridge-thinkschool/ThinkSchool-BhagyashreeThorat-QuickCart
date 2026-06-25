@@ -151,6 +151,8 @@ app.Use(async (context, next) =>
     headers["Referrer-Policy"] = "no-referrer";
     headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
     headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()";
+    // Prevent intermediate caches from storing user-specific API responses.
+    headers["Cache-Control"] = "no-store";
     await next();
 });
 
@@ -163,3 +165,7 @@ if (entraEnabled)
 app.MapControllers();
 
 app.Run();
+
+// Expose Program as a public partial class so WebApplicationFactory<Program>
+// can reference it from the test assembly without InternalsVisibleTo.
+public partial class Program { }
