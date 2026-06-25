@@ -1,0 +1,19 @@
+<app-category-strip
+  [categories]="categories()"
+  [selected]="selectedCategoryId()"
+  (categorySelect)="onCategorySelect($event)" />
+
+<div class="home-content">
+  @if (loading()) {
+    <p class="muted" style="padding:24px 0">Loading products…</p>
+  } @else if (sections().length === 0) {
+    <div class="empty">No products available.</div>
+  } @else {
+    @for (section of sections(); track section.category.categoryId) {
+      <app-product-section
+        [category]="section.category"
+        [products]="section.products"
+        (seeAll)="onSeeAll($event)" />
+    }
+  }
+</div>

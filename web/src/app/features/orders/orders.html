@@ -1,0 +1,38 @@
+<h1>My orders</h1>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (orders().length === 0) {
+  <div class="empty">You have no orders yet. <a href="/products">Start shopping</a>.</div>
+} @else {
+  <div class="card orders-table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Placed</th>
+          <th>Status</th>
+          <th class="num">Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (o of orders(); track o.orderId) {
+          <tr>
+            <td><code>{{ o.orderId.slice(0, 8) }}</code></td>
+            <td>{{ o.createdAtUtc | date: 'short' }}</td>
+            <td>
+              <span class="badge"
+                [class.ok]="o.status === 'Confirmed'"
+                [class.muted]="o.status === 'Cancelled'">
+                {{ o.status }}
+              </span>
+            </td>
+            <td class="num">{{ o.totalAmount | currency:'INR':'symbol':'1.0-0' }}</td>
+            <td class="num"><a [routerLink]="['/orders', o.orderId]">View</a></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,60 @@
+.page-header {
+  margin-bottom: 14px;
+}
+
+.chips {
+  margin-bottom: 18px;
+}
+
+.chips .chip {
+  border-radius: 999px;
+}
+
+.empty-state {
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 6px 0 0;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.product-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  background: var(--surface);
+  display: block;
+}
+
+.product-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badge.cat {
+  align-self: flex-start;
+}
+
+.product-name {
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+
+.product-foot {
+  margin-top: 4px;
+}
+
+.product-foot .btn-primary {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\QuickCart.Domain\QuickCart.Domain.csproj" />
+    <ProjectReference Include="..\QuickCart.Contracts\QuickCart.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,0 +1,16 @@
+name: quickcart
+metadata:
+  template: quickcart@0.0.1
+infra:
+  provider: bicep
+  path: infra
+  module: main
+services:
+  api:
+    project: ./src/QuickCart.Api
+    language: dotnet
+    host: appservice
+  worker:
+    project: ./src/QuickCart.Worker
+    language: dotnet
+    host: appservice

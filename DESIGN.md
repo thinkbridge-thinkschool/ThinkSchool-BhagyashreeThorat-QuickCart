@@ -1,17 +1,24 @@
-# QuickCart — One-Page Design (Day 22 Capstone)
+# QuickCart — Design (Day 22 → Day 29)
 
-**Product slice:** Checkout & Ordering for QuickCart, a quick-commerce platform that delivers groceries and daily essentials within minutes.
-A customer submits an order; the system reserves stock, takes payment, then confirms
-and notifies the customer.
+**Product:** QuickCart, a quick-commerce platform that delivers groceries and daily essentials
+within minutes. A signed-in customer browses a catalog, fills a cart, and submits an order;
+the system records the order, then processes it asynchronously (payment → confirm → notify).
 
-**Architecture:** Modular monolith, clean architecture. One deployable (`QuickCart.Api`),
-internal modules separated by bounded context. Dependencies point **inward** toward the
-Domain; contexts talk to each other through **domain events**, not direct calls — so they
-can later be split into services with minimal change.
+**Architecture:** Modular monolith, clean architecture. One API deployable (`QuickCart.Api`)
+plus a `QuickCart.Worker` host for background processing. Internal modules are separated by
+bounded context. Dependencies point **inward** toward the Domain; contexts talk to each other
+through **domain events**, not direct calls — so they can later be split into services with
+minimal change.
 
-Each bounded context owns its own domain model, events, and business rules. This keeps
-module boundaries explicit, reduces coupling, and aligns the codebase with Domain-Driven
-Design principles while remaining a modular monolith.
+Each bounded context owns its own domain model, events, and business rules. This keeps module
+boundaries explicit, reduces coupling, and aligns the codebase with Domain-Driven Design
+principles while remaining a modular monolith.
+
+> **Day 29 update:** The originally-tiny Ordering slice grew into a working shopping flow:
+> a **Catalog** (categories + products), a **Cart**, a **User** synced from Entra ID, and an
+> enriched **Order**. The architecture is unchanged — these are additive contexts that follow
+> the same aggregate/event patterns. Order creation is now **server-authoritative**: the owner
+> comes from the authenticated token and prices come from the Catalog, never from the client.
 
 ---
 
@@ -19,69 +26,127 @@ Design principles while remaining a modular monolith.
 
 | Context | Responsibility | Status |
 |---|---|---|
-| **Ordering** | Owns the order lifecycle (submit → pay → confirm/cancel). The slice built now. | ✅ Implemented |
-| **Catalog** | Products, descriptions, prices. Source of truth for what can be ordered. | Planned |
-| **Inventory** | Stock levels; reserves/releases stock for an order. | Planned |
-| **Payment** | Charges the customer, reports success/failure. | Planned |
-| **Notifications** | Emails/SMS the customer on order events. | Planned |
+| **Catalog** | Categories and products — the source of truth for what can be ordered and at what price. | ✅ Implemented |
+| **Ordering** | The order lifecycle and the shopping **Cart** that feeds it (browse → cart → submit → pay → deliver/cancel). The core context. | ✅ Implemented |
+| **Shared** | Cross-context building blocks and the **User** (identity synced from Entra). | ✅ Implemented |
+| **Notifications** | Reacts to the `OrderCreated` integration event (email/SMS). | Planned |
+| **Inventory** | Stock levels; reserves/releases stock for an order. | Future scope |
+| **Payment** | Charges the customer, reports success/failure. | Future scope |
 
-Ordering is the core context. The others are supporting and integrate asynchronously.
+Ordering is the core context. Catalog and Shared/User support it. Notifications/Inventory/Payment
+integrate asynchronously and remain future scope.
+
+---
+
+## Shared building blocks
+
+- **`IDomainEvent`** — marker for something noteworthy that happened inside an aggregate.
+- **`BaseEntity`** — audit + soft-delete fields reused across entities: `CreatedAtUtc`,
+  `ModifiedAtUtc`, `IsDeleted`. It deliberately **does not define the primary key** — each
+  entity declares its own explicit key (`OrderId`, `ProductId`, …) per the naming convention
+  below, so there is no generic `Id` to collide with.
+- **Explicit key names.** Every entity uses a named key (`UserId`, `CategoryId`, `ProductId`,
+  `CartId`, `CartItemId`, `OrderId`, `OrderItemId`) rather than a bare `Id`.
+
+---
+
+## Catalog context
+
+- **`Category`** (`CategoryId`, `CategoryName`, `Description`) — e.g. Grocery, Personal Care,
+  Beverages, Snacks, Electronics.
+- **`Product`** (`ProductId`, `CategoryId`, `ProductName`, `Description`, `Price`, `ImageUrl`,
+  `StockQuantity`, `IsAvailable`). Products belong to a category. **Image URLs only** — no
+  binaries in SQL; the frontend uses Angular assets or Blob Storage URLs.
+
+Catalog is the price authority: when an order is placed, the Ordering context resolves the
+current `Price` and `ProductName` from here rather than trusting client input.
+
+---
+
+## Shared / User
+
+- **`User`** (`UserId`, `EntraObjectId`, `Email`, `DisplayName`, `PhoneNumber`).
+- Users authenticate through Microsoft / Entra ID. On first authenticated request the user is
+  **synced/created locally** from the token's object-id and profile claims (`EntraObjectId` is
+  the stable link). Orders and carts belong to the authenticated `UserId` — the API never
+  accepts a customer id, name, or email in a request body.
 
 ---
 
 ## Core aggregate — `Order`
 
-The aggregate root for the Ordering context. It owns its lines, enforces its own
-invariants, and records domain events instead of calling other contexts directly.
+The aggregate root for the Ordering context. It owns its items, enforces its own invariants,
+and records domain events instead of calling other contexts directly.
 
-- **Root:** `Order` (`Id`, `CustomerId`, `Status`, `CreatedAtUtc`)
-- **Owned entity:** `OrderLine` (`ProductId`, `ProductName`, `UnitPrice`, `Quantity`, `LineTotal`) — no identity outside the order
-- **Computed:** `Total` = sum of line totals
-- **States:** `Submitted → Paid` | `Submitted → Cancelled`
+- **Root:** `Order` (`OrderId`, `UserId`, `Status`, `TotalAmount`, `EditableUntilUtc`,
+  `CreatedAtUtc`)
+- **Owned entity:** `OrderItem` (`OrderItemId`, `ProductId`, `UnitPrice`, `Quantity`) — a
+  product line within an order; the `UnitPrice` is a **snapshot captured at order time** so a
+  later catalog price change does not rewrite history. No identity outside the order.
+- **Computed:** line total = `UnitPrice * Quantity`; `TotalAmount` is the persisted sum.
+- **Edit window:** an order may be modified for ~3 minutes after creation
+  (`EditableUntilUtc = CreatedAtUtc + 3m`); after that it is locked.
+
+**Statuses:** `Pending → Processing → Paid → Delivered`, with `Cancelled` reachable from the
+pre-delivery states.
 
 **Invariants enforced inside the aggregate:**
-- An order must contain at least one line (`Order.Create`)
-- Line `Quantity > 0`, `UnitPrice >= 0`, product/name required
-- Cannot pay an order that is not `Submitted`; cannot cancel a `Paid` order
+- An order must contain at least one item.
+- Item `Quantity > 0`, `UnitPrice >= 0`.
+- Items can only be changed while `utcNow <= EditableUntilUtc` and status is `Pending`.
+- A `Delivered` order cannot be cancelled; a `Paid`/`Delivered` order cannot be re-paid.
 
-**Behaviour (the only ways to change state):** `Create`, `MarkPaid`, `Cancel`.
+**Behaviour (the only ways to change state):** `Create`, `UpdateItems` (within the window),
+`MarkProcessing`, `MarkPaid`, `MarkDelivered`, `Cancel`.
 
 `Order` is the **only** entity loaded/saved as a unit and the consistency boundary for a
 transaction.
 
 ---
 
+## Cart aggregate (Ordering)
+
+- **Root:** `Cart` (`CartId`, `UserId`) — one active cart per user.
+- **Owned entity:** `CartItem` (`CartItemId`, `ProductId`, `Quantity`).
+- **Behaviour:** `AddItem`, `UpdateItemQuantity`, `RemoveItem`, `Clear`. Checkout reads the
+  cart, resolves prices from Catalog, creates the `Order`, and clears the cart.
+
+---
+
 ## Async flows (event-driven)
 
-The aggregate records domain events; they are dispatched after the order is persisted, and
-other contexts react. (Aggregate + events exist today; the dispatcher/handlers are the next
-build step.)
+The aggregate records domain events; after the order is persisted, a **domain-event dispatcher**
+translates them into integration events on Service Bus, and other contexts/the Worker react.
+
+> **Day 29 reliability fix (Day 28 review item):** previously the application service
+> hand-built the integration message, bypassing the recorded domain events. That gap is now
+> closed — `OrderCreatedEvent` is dispatched to an application handler which publishes the
+> `OrderCreatedMessage`. (A transactional outbox + consumer idempotency remain documented
+> future work for full at-least-once safety.)
 
 ```
 1. Place order
-   POST /api/orders → Order.Create(...) → saved → [OrderCreatedEvent]
+   POST /api/v1/orders → checkout cart → Order.Create(...) → saved
+       → [OrderCreatedEvent] recorded on the aggregate
+       → dispatcher → OrderCreatedMessage on Service Bus (order-events)
 
-2. Reserve & charge  (reacts to OrderCreatedEvent)
-   Inventory: reserve stock for the lines
-   Payment:   charge the customer → [PaymentSucceededEvent] (or PaymentFailed)
+2. Process  (Worker reacts to OrderCreatedMessage)
+   Worker: load order → MarkPaid()  (placeholder for Payment/Inventory)
 
-3. Confirm & notify  (reacts to PaymentSucceededEvent)
-   Ordering:       Order.MarkPaid()
-   Notifications:  send order-confirmation to customer
+3. Confirm & notify  (planned — Notifications reacts to PaymentSucceededEvent)
 
-4. Cancellation flow (planned)
-
-   PaymentFailed or StockUnavailable
-           ↓
-   Order.Cancel()
-           ↓
-   Release reservation
-           ↓
-   Notify customer
+4. Cancellation flow (planned): payment failure / stock shortage → Order.Cancel()
+   → release reservation → notify customer
 ```
 
-Failure paths (planned): payment failure / stock shortage → release reservation →
-`Order.Cancel()` → notify customer.
+---
+
+## Application features
+
+- **Categories:** Get Categories
+- **Products:** Get Products, Get Product By Id, Search Products, Filter By Category
+- **Cart:** Get Cart, Add To Cart, Update Cart Item, Remove Cart Item
+- **Orders:** Create Order (checkout), Get My Orders, Get Order By Id, Update Order (within edit window)
 
 ---
 
@@ -91,39 +156,23 @@ Failure paths (planned): payment failure / stock shortage → release reservatio
 QuickCart.slnx
 ├─ src/
 │  ├─ QuickCart.Domain          # Bounded-context ownership — no dependencies
-│  │   ├─ Ordering              # Core context (implemented)
-│  │   │   ├─ Aggregates/Order.cs
-│  │   │   ├─ Entities/OrderLine.cs
-│  │   │   ├─ Enums/OrderStatus.cs
-│  │   │   ├─ Events/OrderCreatedEvent.cs, PaymentSucceededEvent.cs
-│  │   │   └─ ValueObjects/
-│  │   ├─ Catalog               # Entities/, Events/        (planned)
-│  │   ├─ Inventory             # Entities/, Events/        (planned)
-│  │   ├─ Payments              # Entities/, Events/        (planned)
-│  │   ├─ Notifications         # Entities/                 (planned)
-│  │   └─ Shared                # Cross-context building blocks
-│  │       ├─ Common/IDomainEvent.cs
-│  │       ├─ Abstractions/
-│  │       └─ Exceptions/
+│  │   ├─ Catalog               # Category, Product
+│  │   ├─ Ordering              # Order (+ OrderItem), Cart (+ CartItem), events, enums
+│  │   ├─ Shared                # BaseEntity, IDomainEvent, User
+│  │   ├─ Inventory / Payments  # Future scope
 │  ├─ QuickCart.Application      # Use cases + ports        → Domain
-│  │   ├─ Abstractions/IOrderRepository.cs
-│  │   └─ Orders/OrderService.cs
-│  ├─ QuickCart.Contracts        # HTTP request/response DTOs (API boundary shapes)
-│  │   └─ Orders/CreateOrderRequest.cs, OrderResponse.cs
-│  ├─ QuickCart.Infrastructure   # EF Core persistence, DI  → Application, Domain
-│  │   ├─ Persistence/QuickCartDbContext.cs, OrderRepository.cs
-│  │   └─ DependencyInjection.cs
+│  ├─ QuickCart.Contracts        # HTTP request/response DTOs + integration messages
+│  ├─ QuickCart.Infrastructure   # EF Core persistence, messaging, DI → Application, Domain
 │  └─ QuickCart.Api              # Controllers, composition root → Application, Contracts, Infrastructure
-│      ├─ Controllers/OrdersController.cs
-│      └─ Program.cs
+├─ web/                          # Angular frontend (product listing, cart, checkout, orders)
 └─ tests/
-   └─ QuickCart.Tests            # xUnit — Order aggregate tests
+   └─ QuickCart.Tests            # xUnit — aggregate tests
 ```
 
 **Dependency rule:** Domain depends on nothing. Application depends only on Domain.
-Infrastructure and Api depend inward. `Contracts` is the public API shape, kept separate
-from domain types; the Application layer works directly with domain objects, so there are
-no redundant Application DTOs.
+Infrastructure and Api depend inward. `Contracts` is the public API/wire shape, kept separate
+from domain types.
 
-**Endpoints today:** `POST /api/orders`, `GET /api/orders/{id}`.
-**Persistence today:** EF Core 10 (InMemory provider; swappable for SQL Server in `AddInfrastructure`).
+**Persistence:** EF Core 10. SQL Server in the cloud (via Managed Identity); InMemory provider
+locally / in tests. One migration describes the full model.
+```

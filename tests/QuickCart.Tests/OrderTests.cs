@@ -7,45 +7,56 @@ namespace QuickCart.Tests;
 
 public class OrderTests
 {
-    private static OrderLine SampleLine(decimal price = 10m, int qty = 2) =>
-        new(Guid.NewGuid(), "Widget", price, qty);
+    private static OrderItem SampleItem(decimal price = 10m, int qty = 2) =>
+        new(Guid.NewGuid(), price, qty);
 
     [Fact]
-    public void Create_WithLines_StartsSubmitted_AndRaisesOrderCreated()
+    public void Create_WithItems_StartsConfirmed_SetsTotalAndRaisesOrderCreated()
     {
-        var order = Order.Create(Guid.NewGuid(), new[] { SampleLine() }, DateTime.UtcNow);
+        var order = Order.Create(Guid.NewGuid(), new[] { SampleItem() }, DateTime.UtcNow);
 
-        Assert.Equal(OrderStatus.Submitted, order.Status);
-        Assert.Equal(20m, order.Total);
-        Assert.Single(order.DomainEvents);
+        Assert.Equal(OrderStatus.Confirmed, order.Status);
+        Assert.Equal(20m, order.TotalAmount);
         Assert.IsType<OrderCreatedEvent>(order.DomainEvents.Single());
     }
 
     [Fact]
-    public void Create_WithNoLines_Throws()
+    public void Create_WithMultipleItems_SumsTotalCorrectly()
+    {
+        var items = new[]
+        {
+            SampleItem(price: 5m, qty: 2),  // 10
+            SampleItem(price: 3m, qty: 3),  // 9
+        };
+        var order = Order.Create(Guid.NewGuid(), items, DateTime.UtcNow);
+
+        Assert.Equal(19m, order.TotalAmount);
+        Assert.Equal(2, order.Items.Count);
+    }
+
+    [Fact]
+    public void Create_WithNoItems_Throws()
     {
         Assert.Throws<InvalidOperationException>(
-            () => Order.Create(Guid.NewGuid(), Array.Empty<OrderLine>(), DateTime.UtcNow));
+            () => Order.Create(Guid.NewGuid(), Array.Empty<OrderItem>(), DateTime.UtcNow));
     }
 
     [Fact]
-    public void MarkPaid_FromSubmitted_TransitionsAndRaisesPaymentSucceeded()
+    public void Cancel_ConfirmedOrder_BecomesCancel()
     {
-        var order = Order.Create(Guid.NewGuid(), new[] { SampleLine() }, DateTime.UtcNow);
-        order.ClearDomainEvents();
+        var order = Order.Create(Guid.NewGuid(), new[] { SampleItem() }, DateTime.UtcNow);
+        order.Cancel(DateTime.UtcNow);
 
-        order.MarkPaid(DateTime.UtcNow);
-
-        Assert.Equal(OrderStatus.Paid, order.Status);
-        Assert.IsType<PaymentSucceededEvent>(order.DomainEvents.Single());
+        Assert.Equal(OrderStatus.Cancelled, order.Status);
     }
 
     [Fact]
-    public void MarkPaid_Twice_Throws()
+    public void Cancel_AlreadyCancelled_IsIdempotent()
     {
-        var order = Order.Create(Guid.NewGuid(), new[] { SampleLine() }, DateTime.UtcNow);
-        order.MarkPaid(DateTime.UtcNow);
+        var order = Order.Create(Guid.NewGuid(), new[] { SampleItem() }, DateTime.UtcNow);
+        order.Cancel(DateTime.UtcNow);
+        order.Cancel(DateTime.UtcNow); // should not throw
 
-        Assert.Throws<InvalidOperationException>(() => order.MarkPaid(DateTime.UtcNow));
+        Assert.Equal(OrderStatus.Cancelled, order.Status);
     }
 }
