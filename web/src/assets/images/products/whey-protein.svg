@@ -1,0 +1,8 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#fff"/>
+  <rect x="20" y="18" width="160" height="118" rx="16" fill="#DFF5D7"/>
+  <text x="100" y="92" text-anchor="middle" dominant-baseline="central" font-size="62" font-family="Arial,sans-serif" font-weight="800" fill="#1A5C00">W</text>
+  <text x="100" y="157" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="Arial,sans-serif" font-weight="600" fill="#1a1a1a">Whey Protein 500g</text>
+
+  <text x="100" y="187" text-anchor="middle" dominant-baseline="central" font-size="9" font-family="Arial,sans-serif" fill="#888" font-style="italic">Health &amp; Wellness</text>
+</svg>

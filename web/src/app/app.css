@@ -4,22 +4,29 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
 }
-.appbar .container { padding-top: 12px; padding-bottom: 12px; }
+.appbar .container { padding-top: 13px; padding-bottom: 13px; }
 
 .navbar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
 .brand {
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--ink);
   flex: none;
+  display: flex;
+  align-items: center;
+  line-height: 1;
 }
-.brand:hover { text-decoration: none; }
+.brand:hover { text-decoration: none; opacity: 0.9; }
+
+.brand-logo {
+  height: 38px;
+  width: auto;
+  display: block;
+}
 
 .navsearch { flex: 1 1 auto; max-width: 440px; }
 .navsearch input { width: 100%; }
@@ -81,8 +88,133 @@ nav a.active { color: var(--ink); border-bottom: 2px solid var(--brand); }
   white-space: nowrap;
 }
 
+/* ── Location button (in navbar) ─────────────────────────────────────────── */
+/* Matches the style of nav links (Home, Products, Cart, Orders) exactly. */
+.location-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 1rem;        /* same as nav links (inherits body) */
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.12s;
+}
+.location-btn:hover { color: var(--ink); border-color: transparent; }
+
+.location-label {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-caret { font-size: 0.65rem; color: var(--muted); }
+
+/* ── Location picker modal ───────────────────────────────────────────────── */
+.location-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.location-modal {
+  width: 100%;
+  max-width: 400px;
+  padding: 0;
+  overflow: hidden;
+  animation: modal-in 0.15s ease;
+}
+
+@keyframes modal-in {
+  from { transform: scale(0.94); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.location-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.location-modal-eyebrow {
+  margin: 0 0 2px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.location-close {
+  font-size: 1rem;
+  padding: 4px 8px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.location-cities {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 16px 20px 20px;
+}
+
+.city-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+.city-btn:hover { border-color: var(--brand); background: #f0f4ff; }
+.city-btn--active {
+  border-color: var(--brand);
+  border-width: 2px;
+  background: #eef2ff;
+  color: var(--brand);
+}
+
+.city-btn--unavailable {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.city-btn--unavailable:hover { border-color: var(--line); background: var(--surface); }
+
+.city-soon {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
 @media (max-width: 760px) {
   .navbar { flex-wrap: wrap; }
   .navsearch { order: 3; flex-basis: 100%; max-width: none; }
   .navuser { order: 2; }
+  .location-label { display: none; } /* show pin only on mobile */
 }

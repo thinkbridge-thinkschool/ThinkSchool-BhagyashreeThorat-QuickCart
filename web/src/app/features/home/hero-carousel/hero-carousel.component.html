@@ -1,0 +1,30 @@
+<div class="carousel" role="region" aria-label="Promotional banners">
+
+  <!-- Slide track -->
+  <div class="slides-track" [style.transform]="'translateX(-' + current() * 100 + '%)'">
+    @for (slide of slides; track slide.image) {
+      <div class="slide">
+        <img [src]="slide.image" [alt]="slide.alt" class="slide-img" loading="lazy" />
+      </div>
+    }
+  </div>
+
+  <!-- Prev / Next arrows -->
+  <button class="arrow arrow-prev" (click)="prev()" aria-label="Previous slide">&#8249;</button>
+  <button class="arrow arrow-next" (click)="next()" aria-label="Next slide">&#8250;</button>
+
+  <!-- Dot indicators -->
+  <div class="indicators" role="tablist" aria-label="Slide indicators">
+    @for (slide of slides; track $index) {
+      <button
+        class="dot"
+        [class.dot--active]="current() === $index"
+        (click)="goTo($index)"
+        role="tab"
+        [attr.aria-selected]="current() === $index"
+        [attr.aria-label]="'Go to slide ' + ($index + 1)">
+      </button>
+    }
+  </div>
+
+</div>

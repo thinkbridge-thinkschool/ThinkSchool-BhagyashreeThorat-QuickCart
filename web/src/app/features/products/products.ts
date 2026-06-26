@@ -1,46 +1,43 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { debounceTime, skip } from 'rxjs';
 import { CatalogApi } from '../../core/api/catalog.service';
-import { CartApi } from '../../core/api/cart.service';
-import { AuthService } from '../../core/auth/auth.service';
 import { SearchState } from '../../core/state/search.service';
-import { CartState } from '../../core/state/cart-state.service';
-import { Category, Product } from '../../core/models';
+import { Category, PagedResult, Product } from '../../core/models';
+import { CategoryImageStrip } from '../../shared/category-image-strip/category-image-strip.component';
+import { ProductCard } from '../../shared/product-card/product-card';
 
-export const PRODUCT_PLACEHOLDER =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
-       <rect width="300" height="200" fill="#eef1f6"/>
-       <g fill="none" stroke="#c2cad6" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
-         <path d="M110 82 h80 l-8 66 a6 6 0 0 1 -6 6 h-52 a6 6 0 0 1 -6 -6 z"/>
-         <path d="M128 82 a22 22 0 0 1 44 0"/>
-       </g>
-     </svg>`,
-  );
+// Re-export so existing importers (product-detail.ts) continue to work.
+export { PRODUCT_PLACEHOLDER } from '../../shared/product-card/product-card';
 
 @Component({
   selector: 'app-products',
-  imports: [CurrencyPipe],
+  imports: [CategoryImageStrip, ProductCard],
   templateUrl: './products.html',
   styleUrl: './products.css',
 })
 export class Products implements OnInit {
-  private readonly catalog = inject(CatalogApi);
-  private readonly cart = inject(CartApi);
-  private readonly cartState = inject(CartState);
-  private readonly auth = inject(AuthService);
-  private readonly search = inject(SearchState);
-  private readonly route = inject(ActivatedRoute);
+  private readonly catalog    = inject(CatalogApi);
+  private readonly search     = inject(SearchState);
+  private readonly route      = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly placeholder = PRODUCT_PLACEHOLDER;
-
-  readonly categories = signal<Category[]>([]);
-  readonly allProducts = signal<Product[]>([]);
-  readonly loading = signal(false);
+  // ── State ────────────────────────────────────────────────────────────
+  readonly categories       = signal<Category[]>([]);
+  readonly pagedResult      = signal<PagedResult<Product> | null>(null);
+  readonly loading          = signal(false);
   readonly selectedCategory = signal<string | null>(null);
-  readonly toast = signal<string | null>(null);
+  readonly toast            = signal<string | null>(null);
+  readonly page             = signal(1);
+  readonly pageSize         = 12;
+
+  // ── Derived from paged result ─────────────────────────────────────────
+  readonly items       = computed(() => this.pagedResult()?.items ?? []);
+  readonly totalPages  = computed(() => this.pagedResult()?.totalPages ?? 0);
+  readonly hasPrevious = computed(() => this.pagedResult()?.hasPrevious ?? false);
+  readonly hasNext     = computed(() => this.pagedResult()?.hasNext ?? false);
+  readonly totalItems  = computed(() => this.pagedResult()?.totalItems ?? 0);
 
   private readonly categoryById = computed(() => {
     const map = new Map<string, string>();
@@ -48,56 +45,63 @@ export class Products implements OnInit {
     return map;
   });
 
-  readonly filtered = computed(() => {
-    const term = this.search.term().trim().toLowerCase();
-    const cat = this.selectedCategory();
-    return this.allProducts().filter((p) => {
-      if (cat && p.categoryId !== cat) return false;
-      if (term) {
-        const hay = `${p.productName} ${p.description ?? ''}`.toLowerCase();
-        if (!hay.includes(term)) return false;
-      }
-      return true;
+  constructor() {
+    // toObservable requires an injection context — constructor qualifies, ngOnInit does not.
+    toObservable(this.search.term).pipe(
+      skip(1),
+      debounceTime(350),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      this.page.set(1);
+      this.loadPage();
     });
-  });
+  }
 
   ngOnInit(): void {
-    // Pre-select a category when navigated here from "See All".
     const catParam = this.route.snapshot.queryParamMap.get('categoryId');
     if (catParam) this.selectedCategory.set(catParam);
 
     this.catalog.getCategories().subscribe((c) => this.categories.set(c));
-
-    this.loading.set(true);
-    this.catalog.getProducts().subscribe({
-      next: (p) => { this.allProducts.set(p); this.loading.set(false); },
-      error: () => this.loading.set(false),
-    });
+    this.loadPage();
   }
 
+  // ── Public actions ───────────────────────────────────────────────────
+
+  /** Returns the display name for a category id — passed to ProductCard as [categoryName]. */
   categoryName(id: string): string {
     return this.categoryById().get(id) ?? '';
   }
 
+  /** Called by CategoryStrip's (categorySelect) output. */
   selectCategory(id: string | null): void {
     this.selectedCategory.set(id);
+    this.page.set(1);
+    this.loadPage();
   }
 
-  add(p: Product): void {
-    if (!this.auth.isAuthenticated) {
-      void this.auth.login();
-      return;
-    }
-    this.cart.addItem(p.productId, 1).subscribe({
-      next: (cart) => {
-        this.cartState.setFromCart(cart); // keep navbar badge in sync
-        this.flash(`Added ${p.productName} to cart`);
+  goToPage(p: number): void {
+    this.page.set(p);
+    this.loadPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Private helpers ───────────────────────────────────────────────────
+
+  private loadPage(): void {
+    this.loading.set(true);
+
+    this.catalog.getProducts({
+      page:       this.page(),
+      pageSize:   this.pageSize,
+      search:     this.search.term().trim() || undefined,
+      categoryId: this.selectedCategory() ?? undefined,
+    }).subscribe({
+      next:  (result) => { this.pagedResult.set(result); this.loading.set(false); },
+      error: () => {
+        this.loading.set(false);
+        this.flash('Could not load products. Check that the API is running.');
       },
     });
-  }
-
-  onImgError(e: Event): void {
-    (e.target as HTMLImageElement).src = PRODUCT_PLACEHOLDER;
   }
 
   private flash(msg: string): void {

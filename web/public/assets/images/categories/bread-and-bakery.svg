@@ -1,0 +1,31 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#6D3B00"/><stop offset="100%" stop-color="#E65100"/>
+</linearGradient></defs>
+<rect width="320" height="240" fill="url(#g)"/>
+<circle cx="256" cy="68"  r="92" fill="rgba(255,255,255,0.06)"/>
+<circle cx="58"  cy="200" r="70" fill="rgba(0,0,0,0.09)"/>
+<!-- Bread loaf -->
+<rect x="78" y="100" width="110" height="88" rx="12" fill="#A1887F" opacity="0.95"/>
+<path d="M78 100 C78 68,188 68,188 100 Z" fill="#8D6E63" opacity="0.98"/>
+<ellipse cx="133" cy="100" rx="54" ry="16" fill="#795548" opacity="0.8"/>
+<!-- Slice lines -->
+<line x1="108" y1="98" x2="108" y2="188" stroke="#6D4C41" stroke-width="3" opacity="0.5"/>
+<line x1="133" y1="98" x2="133" y2="188" stroke="#6D4C41" stroke-width="3" opacity="0.5"/>
+<line x1="158" y1="98" x2="158" y2="188" stroke="#6D4C41" stroke-width="3" opacity="0.5"/>
+<!-- Burger bun -->
+<ellipse cx="248" cy="110" rx="52" ry="36" fill="#FFCC80" opacity="0.95"/>
+<ellipse cx="248" cy="104" rx="44" ry="26" fill="#FFB74D" opacity="0.88"/>
+<ellipse cx="236" cy="96"  rx="18" ry="12" fill="rgba(255,255,255,0.25)" transform="rotate(-15 236 96)"/>
+<ellipse cx="248" cy="146" rx="52" ry="16" fill="#FF8F00" opacity="0.9"/>
+<!-- Croissant -->
+<path d="M186 152 C200 128,244 128,258 152 C248 162,236 158,222 162 C208 166,196 163,186 152 Z" fill="#FFCC80" opacity="0.95"/>
+<path d="M188 154 C200 136,242 136,256 154" stroke="#FF8F00" stroke-width="3" fill="none" opacity="0.6"/>
+<!-- Seeds on bun -->
+<ellipse cx="240" cy="99" rx="5" ry="2" fill="#E65100" opacity="0.7" transform="rotate(-20 240 99)"/>
+<ellipse cx="252" cy="94" rx="5" ry="2" fill="#E65100" opacity="0.7" transform="rotate(15 252 94)"/>
+<ellipse cx="262" cy="102" rx="5" ry="2" fill="#E65100" opacity="0.7" transform="rotate(-10 262 102)"/>
+<!-- Bottom label -->
+<rect width="320" height="56" y="184" fill="rgba(0,0,0,0.45)"/>
+<text x="16" y="218" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="15" fill="#ffffff" font-weight="700">Bread &amp; Bakery</text>
+</svg>

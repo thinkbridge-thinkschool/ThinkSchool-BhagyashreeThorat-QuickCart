@@ -121,6 +121,8 @@ module monitoring 'modules/monitoring.bicep' = {
   }
 }
 
+// The Angular frontend is served as static files from the API App Service's wwwroot.
+// No separate hosting resource is needed; UseStaticFiles + MapFallbackToFile handle routing.
 module appService 'modules/appservice.bicep' = {
   name: 'appService'
   params: {
@@ -131,7 +133,9 @@ module appService 'modules/appservice.bicep' = {
     sqlConnectionString: sql.outputs.connectionString
     serviceBusFullyQualifiedNamespace: serviceBus.outputs.fullyQualifiedNamespace
     keyVaultSecretUri: '${keyVault.outputs.vaultUri}secrets/ExternalApiKey/'
-    entraTenantId: tenant().tenantId
+    // 'common' allows tokens from any Entra tenant and personal Microsoft accounts.
+    // tenant().tenantId would lock the API to the subscription's own tenant only.
+    entraTenantId: 'common'
     entraClientId: entraClientId
     appInsightsConnectionString: monitoring.outputs.connectionString
     aspNetCoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
@@ -198,3 +202,6 @@ output appInsightsId string = monitoring.outputs.appInsightsId
 
 @description('Log Analytics workspace id — alert rules query this.')
 output logAnalyticsWorkspaceId string = monitoring.outputs.workspaceId
+
+@description('Public URL of the Angular frontend (served from the API App Service wwwroot).')
+output webUrl string = 'https://${appService.outputs.defaultHostName}'

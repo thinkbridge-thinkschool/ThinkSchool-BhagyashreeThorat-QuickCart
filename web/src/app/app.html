@@ -1,6 +1,8 @@
 <header class="appbar">
   <div class="container navbar">
-    <a class="brand" routerLink="/">QuickCart</a>
+    <a class="brand" routerLink="/" aria-label="QuickCart home">
+      <img src="assets/images/quickcart-logo.svg" alt="QuickCart" class="brand-logo" />
+    </a>
 
     @if (auth.isAuthenticated) {
       <div class="navsearch">
@@ -22,6 +24,17 @@
       }
     </nav>
 
+    <!-- Location picker button — always visible -->
+    <button
+      class="location-btn"
+      (click)="locationOpen.set(true)"
+      aria-label="Select delivery city"
+      aria-haspopup="dialog">
+      <!--<span class="location-pin">📍</span> -->
+      <span class="location-label">{{ selectedCity() ?? 'Select city' }}</span>
+      <span class="location-caret">▾</span>
+    </button>
+
     <div class="row navuser">
       @if (auth.isAuthenticated) {
         <span class="muted username">{{ displayName() }}</span>
@@ -42,3 +55,52 @@
 <main class="container">
   <router-outlet />
 </main>
+
+<!-- ── Location picker modal ────────────────────────────────────────────── -->
+@if (locationOpen()) {
+  <!-- Backdrop: clicking it dismisses the modal -->
+  <div
+    class="location-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Choose your city"
+    (click)="locationOpen.set(false)"
+    (keydown.escape)="locationOpen.set(false)"
+    tabindex="-1">
+
+    <!-- Modal card: stop clicks from bubbling to backdrop -->
+    <div class="location-modal card" (click)="$event.stopPropagation()">
+
+      <div class="location-modal-header">
+        <div>
+          <p class="location-modal-eyebrow">Delivery to</p>
+          <strong>Choose your city</strong>
+        </div>
+        <button
+          class="btn-ghost location-close"
+          (click)="locationOpen.set(false)"
+          aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <div class="location-cities">
+        @for (city of cities; track city) {
+          <button
+            class="city-btn"
+            [class.city-btn--active]="selectedCity() === city"
+            [class.city-btn--unavailable]="!isActive(city)"
+            [disabled]="!isActive(city)"
+            [title]="isActive(city) ? '' : 'Coming soon'"
+            (click)="selectCity(city)">
+            <span>{{ city }}</span>
+            @if (!isActive(city)) {
+              <span class="city-soon">Soon</span>
+            }
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+}

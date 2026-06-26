@@ -3,14 +3,39 @@ import { Category } from '../../../core/models';
 
 /** Maps lowercase category name fragments to an emoji icon. */
 const ICONS: [string, string][] = [
-  ['grocery', '🥦'], ['fruit', '🍎'], ['vegetable', '🥕'],
-  ['dairy', '🥛'], ['bread', '🍞'], ['egg', '🥚'],
+  // Produce
+  ['fruit', '🍎'], ['vegetable', '🥕'],
+  // Grocery
+  ['grocery', '🥦'], ['staple', '🌾'],
+  // Dairy
+  ['dairy', '🥛'], ['breakfast', '🥣'], ['egg', '🥚'],
+  // Bakery
+  ['bread', '🍞'], ['bakery', '🥐'],
+  // Meat & fish
   ['meat', '🍗'], ['fish', '🐟'],
+  // Beverages
   ['beverage', '🥤'], ['tea', '🍵'], ['coffee', '☕'],
-  ['snack', '🍿'], ['chip', '🥨'], ['biscuit', '🍪'],
-  ['personal care', '🧴'], ['care', '🧼'],
-  ['electronic', '📱'], ['gadget', '🔌'],
-  ['frozen', '❄️'], ['masala', '🌶️'], ['breakfast', '🥣'],
+  // Snacks
+  ['snack', '🍿'], ['munchie', '🍟'], ['chip', '🥨'], ['biscuit', '🍪'], ['chocolate', '🍫'],
+  // Frozen
+  ['frozen', '❄️'],
+  // Personal care (before generic 'care')
+  ['personal care', '🧴'],
+  // Home & cleaning
+  ['home', '🏠'], ['cleaning', '🧹'],
+  // Baby (before generic 'care')
+  ['baby', '👶'],
+  // Health & wellness
+  ['health', '💊'], ['wellness', '🌿'], ['vitamin', '💊'],
+  // Electronics
+  ['electronic', '📱'], ['gadget', '🔌'], ['accessorie', '🎧'],
+  // Pet
+  ['pet', '🐾'],
+  // Generic care fallback
+  ['care', '🧼'],
+  // Spices / masala
+  ['masala', '🌶️'], ['spice', '🌶️'],
+  // Packaged
   ['packaged', '📦'],
 ];
 

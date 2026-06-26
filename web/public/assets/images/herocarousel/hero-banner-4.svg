@@ -1,0 +1,61 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 420" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="b4" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+    <stop offset="0%" stop-color="#0D1B2A"/><stop offset="55%" stop-color="#1A237E"/><stop offset="100%" stop-color="#283593"/>
+  </linearGradient>
+</defs>
+<rect width="1400" height="420" fill="url(#b4)"/>
+<!-- Circuit-board style dots and lines -->
+<circle cx="870"  cy="80"  r="5" fill="rgba(100,181,246,0.5)"/>
+<circle cx="920"  cy="130" r="5" fill="rgba(100,181,246,0.5)"/>
+<circle cx="980"  cy="80"  r="5" fill="rgba(100,181,246,0.5)"/>
+<line x1="870" y1="80" x2="920" y2="80"  stroke="rgba(100,181,246,0.3)" stroke-width="2"/>
+<line x1="920" y1="80" x2="920" y2="130" stroke="rgba(100,181,246,0.3)" stroke-width="2"/>
+<line x1="920" y1="80" x2="980" y2="80"  stroke="rgba(100,181,246,0.3)" stroke-width="2"/>
+<circle cx="860"  cy="350" r="5" fill="rgba(100,181,246,0.4)"/>
+<circle cx="920"  cy="350" r="5" fill="rgba(100,181,246,0.4)"/>
+<circle cx="860"  cy="300" r="5" fill="rgba(100,181,246,0.4)"/>
+<line x1="860" y1="300" x2="860" y2="350" stroke="rgba(100,181,246,0.25)" stroke-width="2"/>
+<line x1="860" y1="350" x2="920" y2="350" stroke="rgba(100,181,246,0.25)" stroke-width="2"/>
+<circle cx="1060" cy="210" r="260" fill="rgba(255,255,255,0.04)"/>
+<!-- Wireless earbuds case (pod) -->
+<rect x="940" y="140" width="140" height="120" rx="28" fill="#37474F" opacity="0.95"/>
+<rect x="952" y="152" width="116" height="96"  rx="20" fill="#263238" opacity="0.98"/>
+<!-- Left earbud -->
+<ellipse cx="978" cy="200" rx="28" ry="34" fill="#546E7A"/>
+<ellipse cx="978" cy="192" rx="16" ry="20" fill="#607D8B"/>
+<circle  cx="978" cy="200" r="9" fill="#90A4AE"/>
+<!-- Right earbud -->
+<ellipse cx="1042" cy="200" rx="28" ry="34" fill="#546E7A"/>
+<ellipse cx="1042" cy="192" rx="16" ry="20" fill="#607D8B"/>
+<circle  cx="1042" cy="200" r="9" fill="#90A4AE"/>
+<!-- LED indicator -->
+<circle cx="1010" cy="248" r="6" fill="#64B5F6" opacity="0.9"/>
+<!-- Power bank (rectangular) -->
+<rect x="1115" y="135" width="180" height="80" rx="16" fill="#ECEFF1" opacity="0.94"/>
+<rect x="1127" y="147" width="156" height="56" rx="10" fill="#CFD8DC"/>
+<rect x="1139" y="159" width="30" height="32" rx="6" fill="#455A64"/>
+<rect x="1177" y="159" width="30" height="32" rx="6" fill="#455A64"/>
+<rect x="1215" y="159" width="30" height="32" rx="6" fill="#455A64"/>
+<circle cx="1290" cy="175" r="12" fill="#64B5F6" opacity="0.85"/>
+<rect x="1295" y="165" width="8" height="20" rx="4" fill="#B0BEC5"/>
+<!-- USB-C cable -->
+<path d="M1100 310 C1130 290,1170 330,1200 310 C1230 290,1270 330,1300 310" stroke="#90A4AE" stroke-width="10" fill="none" stroke-linecap="round"/>
+<rect x="1092" y="300" width="28" height="20" rx="5" fill="#78909C"/>
+<rect x="1296" y="300" width="28" height="20" rx="5" fill="#78909C"/>
+<!-- Phone stand -->
+<path d="M1340 330 L1360 210 L1380 210 L1400 330 Z" fill="#546E7A" opacity="0.7"/>
+<rect x="1330" y="325" width="80" height="12" rx="6" fill="#455A64" opacity="0.8"/>
+<!-- Screen protector pack -->
+<rect x="940" y="290" width="95" height="110" rx="8" fill="#E3F2FD" opacity="0.88"/>
+<rect x="950" y="300" width="75" height="90"  rx="4" fill="#BBDEFB" opacity="0.7"/>
+<rect x="957" y="310" width="62" height="4"   rx="2" fill="#90CAF9" opacity="0.8"/>
+<rect x="957" y="320" width="50" height="4"   rx="2" fill="#90CAF9" opacity="0.6"/>
+<!-- LEFT TEXT -->
+<text x="80" y="124" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="16" fill="rgba(100,181,246,0.85)" font-weight="600" letter-spacing="4">TECH DEALS  &#x2022;  TOP BRANDS</text>
+<text x="80" y="210" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="68" fill="#ffffff" font-weight="800" letter-spacing="-2">Electronics &amp;</text>
+<text x="80" y="288" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="68" fill="#BBDEFB" font-weight="800" letter-spacing="-2">Accessories</text>
+<text x="80" y="336" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="22" fill="rgba(255,255,255,0.85)">Up to 50% off on cables, earbuds &amp; more</text>
+<rect x="80" y="358" width="165" height="46" rx="23" fill="#64B5F6"/>
+<text x="162" y="388" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="15" fill="#0D1B2A" font-weight="700" text-anchor="middle">Explore Deals &#x2192;</text>
+</svg>

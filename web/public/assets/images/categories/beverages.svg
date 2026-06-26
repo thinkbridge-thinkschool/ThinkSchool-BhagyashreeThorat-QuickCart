@@ -1,0 +1,35 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#01579B"/><stop offset="100%" stop-color="#039BE5"/>
+</linearGradient></defs>
+<rect width="320" height="240" fill="url(#g)"/>
+<circle cx="260" cy="65"  r="92" fill="rgba(255,255,255,0.07)"/>
+<circle cx="55"  cy="200" r="72" fill="rgba(0,0,0,0.08)"/>
+<!-- Juice bottle (tall) -->
+<rect x="80"  y="68" width="54" height="118" rx="10" fill="#FFF9C4" opacity="0.95"/>
+<rect x="88"  y="52" width="38" height="20"  rx="6"  fill="#FFEE58" opacity="0.9"/>
+<rect x="97"  y="38" width="20" height="16"  rx="4"  fill="#FDD835" opacity="0.95"/>
+<rect x="88"  y="85" width="38" height="10"  rx="3"  fill="#F57F17" opacity="0.6"/>
+<rect x="88" y="102" width="38" height="8"   rx="3"  fill="#F57F17" opacity="0.4"/>
+<ellipse cx="107" cy="138" rx="20" ry="16" fill="rgba(245,127,23,0.18)"/>
+<!-- Can (tall) -->
+<rect x="156" y="72" width="62" height="110" rx="12" fill="#E3F2FD" opacity="0.95"/>
+<rect x="156" y="72" width="62" height="26"  rx="12" fill="#90CAF9" opacity="0.92"/>
+<rect x="156" y="156" width="62" height="26" rx="12" fill="#90CAF9" opacity="0.92"/>
+<ellipse cx="187" cy="84" rx="31" ry="7" fill="#BBDEFB" opacity="0.7"/>
+<rect x="168" y="103" width="38" height="10" rx="3" fill="#1565C0" opacity="0.5"/>
+<rect x="168" y="119" width="30" height="8"  rx="3" fill="#1565C0" opacity="0.35"/>
+<rect x="200" y="63" width="20" height="10"  rx="3" fill="#64B5F6" opacity="0.9"/>
+<!-- Coffee cup -->
+<path d="M240 100 L248 185 L304 185 L312 100 Z" fill="#EFEBE9" opacity="0.95"/>
+<rect x="240" y="100" width="72" height="22" rx="0" fill="#795548" opacity="0.88"/>
+<path d="M310 126 C328 126,336 148,318 152 L310 150 Z" fill="#EFEBE9" opacity="0.8"/>
+<path d="M310 140 C324 140,328 152,316 154 L310 153 Z" fill="#D7CCC8" opacity="0.7"/>
+<rect x="248" y="120" width="56" height="9" rx="3" fill="#5D4037" opacity="0.5"/>
+<!-- Tea bag tag hanging from cup -->
+<line x1="270" y1="100" x2="270" y2="78" stroke="#795548" stroke-width="3"/>
+<rect x="262" y="68" width="18" height="12" rx="3" fill="#795548" opacity="0.8"/>
+<!-- Bottom label -->
+<rect width="320" height="56" y="184" fill="rgba(0,0,0,0.45)"/>
+<text x="16" y="218" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="15" fill="#ffffff" font-weight="700">Beverages</text>
+</svg>

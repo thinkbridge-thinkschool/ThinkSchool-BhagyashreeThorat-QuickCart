@@ -1,0 +1,81 @@
+/* ── Card shell ─────────────────────────────────────────────────────────── */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  height: 100%;
+  border-radius: var(--radius);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Image ───────────────────────────────────────────────────────────────── */
+.product-img-link {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.product-img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  background: #f0f2f5;
+  display: block;
+  transition: transform 0.25s var(--ease), opacity 0.15s;
+}
+.product-img-link:hover .product-img {
+  transform: scale(1.04);
+  opacity: 0.9;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.product-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.badge.cat { align-self: flex-start; }
+
+/* ── Name ────────────────────────────────────────────────────────────────── */
+.product-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+.product-name-link:hover .product-name { color: var(--brand); }
+
+.product-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.4em;
+  color: var(--ink);
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.product-foot { margin-top: auto; }
+
+.product-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.product-add-btn {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: 8px;
+}

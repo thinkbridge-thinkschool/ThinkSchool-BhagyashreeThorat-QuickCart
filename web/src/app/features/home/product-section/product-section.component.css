@@ -1,7 +1,9 @@
+/* ── Section wrapper ─────────────────────────────────────────────────────── */
 .ps-section {
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
+/* ── Section header ──────────────────────────────────────────────────────── */
 .ps-header {
   margin-bottom: 14px;
   padding: 0 2px;
@@ -9,88 +11,41 @@
 
 .ps-title {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--ink);
 }
 
 .ps-see-all {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: var(--brand);
-  padding: 4px 8px;
+  padding: 4px 10px;
   white-space: nowrap;
+  border-radius: 8px;
 }
-.ps-see-all:hover { text-decoration: underline; }
+.ps-see-all:hover {
+  background: var(--brand-lt);
+  text-decoration: none;
+  border-color: transparent;
+  box-shadow: none;
+}
 
-/* Horizontal scroll carousel */
+/* ── Horizontal carousel ─────────────────────────────────────────────────── */
 .ps-carousel {
   display: flex;
   gap: 14px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: x mandatory;
 }
 .ps-carousel::-webkit-scrollbar { display: none; }
 
-/* Product card — dimensions match the products grid so cards look identical
-   on both the home carousel and the /products grid view. */
-.ps-card {
+.ps-card-slot {
   flex: none;
-  width: 160px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0;
+  width: 168px;
   scroll-snap-align: start;
-  transition: transform 0.1s;
-}
-.ps-card:hover { transform: translateY(-2px); }
-
-.ps-img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  background: var(--surface);
-  display: block;
-}
-
-.ps-body {
-  padding: 12px 14px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-}
-
-.ps-name {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 600;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 2.3em;
-}
-
-.ps-price {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.ps-add {
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border-radius: 9px;
-  white-space: nowrap;
-}
-
-.ps-foot {
-  margin-top: 4px;
 }

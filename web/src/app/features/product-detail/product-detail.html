@@ -1,0 +1,109 @@
+@if (loading()) {
+
+  <p class="muted pd-loading">Loading product…</p>
+
+} @else if (notFound()) {
+
+  <div class="card pd-state-card">
+    <p class="pd-state-icon muted">🔍</p>
+    <h2>Product not found</h2>
+    <p class="muted">The product you're looking for doesn't exist or may have been removed.</p>
+    <a routerLink="/products" class="btn-primary pd-state-btn">Browse Products</a>
+  </div>
+
+} @else if (error()) {
+
+  <div class="card pd-state-card">
+    <p class="pd-state-icon muted">⚠️</p>
+    <h2>Something went wrong</h2>
+    <p class="muted">{{ error() }}</p>
+    <a routerLink="/products" class="btn-primary pd-state-btn">Browse Products</a>
+  </div>
+
+} @else {
+
+  <a routerLink="/products" class="pd-back muted">← Continue Shopping</a>
+
+  <div class="pd-layout">
+
+    <!-- Image column -->
+    <div class="pd-img-wrap card">
+      <img
+        class="pd-img"
+        [src]="product()!.imageUrl || placeholder"
+        (error)="onImgError($event)"
+        [alt]="product()!.productName" />
+    </div>
+
+    <!-- Info column -->
+    <div class="pd-info">
+
+      @if (categoryName()) {
+        <span class="badge cat pd-category">{{ categoryName() }}</span>
+      }
+
+      <h1 class="pd-name">{{ product()!.productName }}</h1>
+
+      <p class="pd-price">{{ product()!.price | currency:'INR':'symbol':'1.0-0' }}</p>
+
+      <div class="pd-stock">
+        @if (product()!.isAvailable) {
+          <span class="badge ok">In Stock</span>
+          <span class="muted pd-stock-qty">&nbsp;{{ product()!.stockQuantity }} available</span>
+        } @else {
+          <span class="badge pd-out-of-stock">Out of Stock</span>
+        }
+      </div>
+
+      @if (product()!.description) {
+        <p class="pd-description">{{ product()!.description }}</p>
+      }
+
+      @if (product()!.isAvailable) {
+        <div class="pd-qty-row">
+          <span class="pd-qty-label">Quantity</span>
+          <div class="pd-qty-control">
+            <button
+              class="pd-qty-btn"
+              [disabled]="qty() <= 1"
+              (click)="decrementQty()"
+              aria-label="Decrease quantity">
+              −
+            </button>
+            <span class="pd-qty-val">{{ qty() }}</span>
+            <button
+              class="pd-qty-btn"
+              [disabled]="qty() >= product()!.stockQuantity"
+              (click)="incrementQty()"
+              aria-label="Increase quantity">
+              +
+            </button>
+          </div>
+        </div>
+      }
+
+      <div class="pd-actions">
+        <button
+          class="btn-primary pd-add-btn"
+          [disabled]="!product()!.isAvailable || adding()"
+          (click)="add()">
+          @if (adding()) {
+            Adding…
+          } @else if (!product()!.isAvailable) {
+            Out of Stock
+          } @else {
+            Add to Cart
+          }
+        </button>
+
+        <a routerLink="/products" class="pd-continue muted">← Continue Shopping</a>
+      </div>
+
+    </div>
+  </div>
+
+}
+
+@if (toast()) {
+  <div class="toast">{{ toast() }}</div>
+}

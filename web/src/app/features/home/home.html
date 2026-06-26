@@ -1,11 +1,23 @@
-<app-category-strip
-  [categories]="categories()"
-  [selected]="selectedCategoryId()"
-  (categorySelect)="onCategorySelect($event)" />
+<!-- ── Hero Carousel ─────────────────────────────────────────────────────── -->
+<div class="home-hero">
+  <app-hero-carousel />
+</div>
 
+<!-- ── Category Cards ────────────────────────────────────────────────────── -->
+<div class="home-cats">
+  <div class="section-heading spread">
+    <h2 class="section-title">Shop by Category</h2>
+  </div>
+  <app-category-image-strip
+    [categories]="categories()"
+    [selected]="selectedCategoryId()"
+    (categorySelect)="onCategorySelect($event)" />
+</div>
+
+<!-- ── Products by Category ──────────────────────────────────────────────── -->
 <div class="home-content">
   @if (loading()) {
-    <p class="muted" style="padding:24px 0">Loading products…</p>
+    <p class="muted home-loading">Loading products…</p>
   } @else if (sections().length === 0) {
     <div class="empty">No products available.</div>
   } @else {

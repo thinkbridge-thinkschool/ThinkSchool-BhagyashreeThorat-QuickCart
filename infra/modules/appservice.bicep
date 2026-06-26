@@ -36,6 +36,9 @@ param aspNetCoreEnvironment string = 'Production'
 @description('Application Insights connection string for OpenTelemetry export. Not a secret.')
 param appInsightsConnectionString string = ''
 
+@description('CORS allowed origin for the Angular frontend (e.g. https://purple-meadow-123.azurestaticapps.net). Empty disables the production CORS header.')
+param corsAllowedOrigin string = ''
+
 @description('Regional VNet integration subnet id. When set, outbound traffic to SQL/Key Vault flows through the VNet so the private-endpoint DNS resolves. Empty = no integration.')
 param vnetIntegrationSubnetId string = ''
 
@@ -103,6 +106,12 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: appInsightsConnectionString
+        }
+        // CORS allowed origin for the Angular SPA. Read by Program.cs to configure the
+        // production CORS policy; empty string disables it (no-op for local / non-SWA deploys).
+        {
+          name: 'Cors__AllowedOrigin'
+          value: corsAllowedOrigin
         }
       ]
       connectionStrings: [

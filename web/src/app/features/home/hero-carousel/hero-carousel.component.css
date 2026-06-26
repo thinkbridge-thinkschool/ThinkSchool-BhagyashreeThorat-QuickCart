@@ -1,0 +1,105 @@
+/* ── Carousel shell ─────────────────────────────────────────────────────── */
+.carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e9eaf0;
+  /* Reserve height while image loads */
+  aspect-ratio: 4.5 / 1;
+  min-height: 160px;
+}
+
+/* ── Slide track ─────────────────────────────────────────────────────────── */
+.slides-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.slide {
+  flex: none;
+  width: 100%;
+  height: 100%;
+}
+
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 20px;
+}
+
+/* ── Arrows ──────────────────────────────────────────────────────────────── */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: #1c2230;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  transition: background 0.15s, transform 0.15s;
+  z-index: 2;
+  line-height: 1;
+  padding: 0 0 2px;
+}
+.arrow:hover {
+  background: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.arrow-prev { left: 14px; }
+.arrow-next { right: 14px; }
+
+/* ── Dot indicators ──────────────────────────────────────────────────────── */
+.indicators {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, width 0.25s, border-radius 0.25s;
+}
+
+.dot--active {
+  background: #fff;
+  width: 26px;
+  border-radius: 4px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .carousel { border-radius: 14px; aspect-ratio: 2 / 1; }
+  .slide-img { border-radius: 14px; }
+  .arrow { width: 36px; height: 36px; font-size: 1.4rem; }
+  .arrow-prev { left: 8px; }
+  .arrow-next { right: 8px; }
+}
+
+@media (max-width: 480px) {
+  .carousel { aspect-ratio: 16 / 9; }
+  .arrow { display: none; }
+}

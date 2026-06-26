@@ -1,27 +1,46 @@
-/* The category strip sits flush to the page edges — it handles its own padding.
-   Override the parent container gutter only for the strip host element. */
-:host {
-  display: block;
-}
+:host { display: block; }
 
-/* Negative-margin trick to allow the category-strip to break out of the
-   28px container padding set on <main class="container">. */
-app-category-strip {
-  display: block;
-  margin-left: -28px;
-  margin-right: -28px;
-  margin-top: -24px;  /* cancel the top container padding too */
+/* ── Hero section ────────────────────────────────────────────────────────── */
+.home-hero {
   margin-bottom: 28px;
 }
 
-@media (max-width: 600px) {
-  app-category-strip {
-    margin-left: -16px;
-    margin-right: -16px;
-    margin-top: -16px;
-  }
+/* ── Category section ────────────────────────────────────────────────────── */
+.home-cats {
+  margin-bottom: 24px;
 }
 
-.home-content {
-  /* sections stack vertically with consistent spacing */
+.section-heading {
+  padding: 0 4px;
+  margin-bottom: 4px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Pull the category strip edge-to-edge within the container's gutter */
+app-category-image-strip {
+  display: block;
+  margin-left: -28px;
+  margin-right: -28px;
+}
+
+/* ── Products content ────────────────────────────────────────────────────── */
+.home-content { /* product sections stack naturally */ }
+
+.home-loading {
+  padding: 24px 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .home-hero { margin-bottom: 20px; }
+  app-category-image-strip {
+    margin-left: -16px;
+    margin-right: -16px;
+  }
 }

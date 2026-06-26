@@ -73,6 +73,24 @@ public sealed class OrderService
         return orders.Select(o => BuildView(o, products)).ToList();
     }
 
+    /// <summary>
+    /// Returns a page of the current user's orders, newest first, with pagination metadata.
+    /// Reuses the same batch product lookup as <see cref="GetMyOrdersAsync"/> — no N+1.
+    /// </summary>
+    public async Task<(IReadOnlyList<OrderView> Items, int TotalCount)> GetMyOrdersPagedAsync(
+        Guid userId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (orders, total) = await _orders.GetByUserPagedAsync(userId, page, pageSize, ct);
+
+        if (orders.Count == 0) return (Array.Empty<OrderView>(), total);
+
+        var allProductIds = orders.SelectMany(o => o.Items.Select(i => i.ProductId));
+        var products = (await _products.GetByIdsAsync(allProductIds, ct))
+            .ToDictionary(p => p.ProductId);
+
+        return (orders.Select(o => BuildView(o, products)).ToList(), total);
+    }
+
     public async Task<OrderView?> GetByIdAsync(Guid userId, Guid orderId, CancellationToken ct = default)
     {
         var order = await _orders.GetByIdAsync(orderId, ct);

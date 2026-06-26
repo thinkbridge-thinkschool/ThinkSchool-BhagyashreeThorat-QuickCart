@@ -2,7 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CatalogApi } from '../../core/api/catalog.service';
 import { Category, Product } from '../../core/models';
-import { CategoryStrip } from './category-strip/category-strip.component';
+import { HeroCarousel } from './hero-carousel/hero-carousel.component';
+import { CategoryImageStrip } from '../../shared/category-image-strip/category-image-strip.component';
 import { ProductSection } from './product-section/product-section.component';
 
 export interface ProductGroup {
@@ -12,7 +13,7 @@ export interface ProductGroup {
 
 @Component({
   selector: 'app-home',
-  imports: [CategoryStrip, ProductSection],
+  imports: [HeroCarousel, CategoryImageStrip, ProductSection],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -42,8 +43,11 @@ export class Home implements OnInit {
 
   ngOnInit(): void {
     this.catalog.getCategories().subscribe((cats) => this.categories.set(cats));
-    this.catalog.getProducts().subscribe({
-      next: (prods) => { this.allProducts.set(prods); this.loading.set(false); },
+    // Fetch a large page to load the full catalog for the home carousels.
+    // The home page groups products by category in horizontal strips and does not
+    // need pagination controls, so we request the full set in one call.
+    this.catalog.getProducts({ pageSize: 200 }).subscribe({
+      next: (result) => { this.allProducts.set(result.items); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }

@@ -1,11 +1,14 @@
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using QuickCart.Application.Abstractions;
 using QuickCart.Application.Orders;
 using QuickCart.Domain.Ordering.Events;
+using QuickCart.Infrastructure.HealthChecks;
 using QuickCart.Infrastructure.Messaging;
 using QuickCart.Infrastructure.Persistence;
 
@@ -70,5 +73,51 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IDomainEventHandler<OrderCreatedEvent>, OrderCreatedEventHandler>();
         return services;
+    }
+
+    /// <summary>
+    /// Registers infrastructure-level health checks.
+    /// Called separately from AddInfrastructure so the caller can chain additional
+    /// application-level checks before finalising the builder.
+    ///
+    /// Checks registered:
+    ///   "database"    – EF Core can open a connection (SQLite or SQL Server). Tag: ready.
+    ///   "service-bus" – Service Bus queue is reachable via admin API. Tag: ready.
+    ///                   Only registered when ServiceBus:FullyQualifiedNamespace is configured.
+    ///                   Failure maps to Degraded (not Unhealthy) because the API can still
+    ///                   serve requests without Service Bus; order events are simply not published.
+    /// </summary>
+    public static IHealthChecksBuilder AddInfrastructureHealthChecks(
+        this IHealthChecksBuilder builder,
+        IConfiguration configuration)
+    {
+        // Database check works for both SQLite (dev) and SQL Server (cloud)
+        // because AddDbContextCheck opens a connection through the same provider
+        // that DependencyInjection.cs registered.
+        builder.AddDbContextCheck<QuickCartDbContext>(
+            name: "database",
+            tags: ["ready"]);
+
+        var serviceBusNamespace = configuration["ServiceBus:FullyQualifiedNamespace"];
+        var queueName = configuration["ServiceBus:QueueName"] ?? "order-events";
+
+        if (!string.IsNullOrWhiteSpace(serviceBusNamespace))
+        {
+            // Register the administration client used only by the health check.
+            // The messaging ServiceBusClient registered in AddInfrastructure is a
+            // data-plane client; this is a separate management-plane client.
+            builder.Services.AddSingleton(
+                new ServiceBusAdministrationClient(serviceBusNamespace, new DefaultAzureCredential()));
+
+            builder.Add(new HealthCheckRegistration(
+                name: "service-bus",
+                factory: sp => new ServiceBusHealthCheck(
+                    sp.GetRequiredService<ServiceBusAdministrationClient>(),
+                    queueName),
+                failureStatus: HealthStatus.Degraded,
+                tags: ["ready"]));
+        }
+
+        return builder;
     }
 }

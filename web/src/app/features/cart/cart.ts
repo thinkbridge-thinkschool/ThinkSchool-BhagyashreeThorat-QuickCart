@@ -55,6 +55,7 @@ export class Cart implements OnInit {
   }
 
   checkout(): void {
+    if (!confirm('Place this order? You can cancel it from the Orders page if needed.')) return;
     this.placing.set(true);
     this.orders.checkout().subscribe({
       next: (order) => {

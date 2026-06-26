@@ -22,5 +22,25 @@ public sealed class OrderRepository : IOrderRepository
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync(ct);
 
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<Order> Items, int TotalCount)> GetByUserPagedAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var query = _db.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAtUtc);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

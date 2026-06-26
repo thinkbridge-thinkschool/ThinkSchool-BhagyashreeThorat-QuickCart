@@ -43,5 +43,42 @@ public sealed class ProductRepository : IProductRepository
         return await _db.Products.Where(p => ids.Contains(p.ProductId)).ToListAsync(ct);
     }
 
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<Product> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search = null,
+        Guid? categoryId = null,
+        CancellationToken ct = default)
+    {
+        // Build the base query with optional filters applied before paging.
+        // EF Core translates this to a single parameterised WHERE clause.
+        var query = _db.Products.AsNoTracking().AsQueryable();
+
+        if (categoryId.HasValue)
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var lowered = search.Trim().ToLowerInvariant();
+            query = query.Where(p =>
+                p.ProductName.ToLower().Contains(lowered) ||
+                (p.Description != null && p.Description.ToLower().Contains(lowered)));
+        }
+
+        // Always order before paging so results are stable across pages.
+        var ordered = query.OrderBy(p => p.ProductName);
+
+        // Two separate queries: COUNT(*) then SELECT with Skip/Take.
+        // This is the standard pattern — no rows outside the window are hydrated.
+        var total = await ordered.CountAsync(ct);
+        var items = await ordered
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

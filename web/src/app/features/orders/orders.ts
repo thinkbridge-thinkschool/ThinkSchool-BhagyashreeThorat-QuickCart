@@ -17,8 +17,10 @@ export class Orders implements OnInit {
   readonly loading = signal(true);
 
   ngOnInit(): void {
-    this.api.getMine().subscribe({
-      next: (o) => { this.orders.set(o); this.loading.set(false); },
+    // Fetch the first page with a generous page size.
+    // Full pagination UI for orders is a future task; for now we display the most recent 50.
+    this.api.getMine({ pageSize: 50 }).subscribe({
+      next: (result) => { this.orders.set(result.items); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }

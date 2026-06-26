@@ -1,0 +1,32 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#00695C"/><stop offset="100%" stop-color="#26A69A"/>
+</linearGradient></defs>
+<rect width="320" height="240" fill="url(#g)"/>
+<circle cx="258" cy="70"  r="90" fill="rgba(255,255,255,0.07)"/>
+<circle cx="58"  cy="200" r="68" fill="rgba(0,0,0,0.08)"/>
+<!-- Vitamin bottle -->
+<rect x="80" y="70" width="60" height="120" rx="14" fill="#E8F5E9" opacity="0.96"/>
+<rect x="88" y="54" width="44" height="20"  rx="8"  fill="#A5D6A7" opacity="0.9"/>
+<rect x="96" y="40" width="28" height="16"  rx="5"  fill="#66BB6A" opacity="0.95"/>
+<rect x="88" y="90" width="44" height="10"  rx="3"  fill="#2E7D32" opacity="0.55"/>
+<rect x="88" y="106" width="44" height="8"  rx="3"  fill="#2E7D32" opacity="0.4"/>
+<ellipse cx="110" cy="148" rx="22" ry="18" fill="rgba(46,125,50,0.15)"/>
+<!-- Capsule pills -->
+<rect x="164" y="88" width="52" height="22" rx="11" fill="#E8F5E9" opacity="0.95"/>
+<rect x="164" y="88" width="26" height="22" rx="11" fill="#81C784" opacity="0.92"/>
+<rect x="164" y="118" width="52" height="22" rx="11" fill="#FFF9C4" opacity="0.95"/>
+<rect x="164" y="118" width="26" height="22" rx="11" fill="#FFF176" opacity="0.92"/>
+<rect x="164" y="148" width="52" height="22" rx="11" fill="#FFCCBC" opacity="0.95"/>
+<rect x="164" y="148" width="26" height="22" rx="11" fill="#FF8A65" opacity="0.88"/>
+<!-- Protein shake bottle -->
+<rect x="234" y="75" width="62" height="110" rx="14" fill="#ECEFF1" opacity="0.95"/>
+<rect x="244" y="59" width="42" height="20"  rx="8"  fill="#CFD8DC" opacity="0.9"/>
+<rect x="253" y="45" width="24" height="16"  rx="5"  fill="#B0BEC5" opacity="0.95"/>
+<rect x="243" y="94" width="44" height="10"  rx="3"  fill="#37474F" opacity="0.55"/>
+<rect x="243" y="110" width="44" height="8"  rx="3"  fill="#37474F" opacity="0.4"/>
+<rect x="243" y="126" width="36" height="8"  rx="3"  fill="#37474F" opacity="0.3"/>
+<!-- Bottom label -->
+<rect width="320" height="56" y="184" fill="rgba(0,0,0,0.45)"/>
+<text x="16" y="218" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="15" fill="#ffffff" font-weight="700">Health &amp; Wellness</text>
+</svg>

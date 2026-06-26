@@ -1,0 +1,27 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#0277BD"/><stop offset="100%" stop-color="#039BE5"/>
+</linearGradient></defs>
+<rect width="320" height="240" fill="url(#g)"/>
+<circle cx="260" cy="70"  r="95" fill="rgba(255,255,255,0.07)"/>
+<circle cx="60"  cy="200" r="70" fill="rgba(0,0,0,0.07)"/>
+<!-- Milk carton -->
+<rect x="88" y="75" width="68" height="110" rx="6" fill="#FFFFFF" opacity="0.94"/>
+<path d="M88 75 L122 50 L156 75 Z" fill="#E3F2FD" opacity="0.95"/>
+<rect x="97" y="92" width="50" height="12" rx="3" fill="#1565C0" opacity="0.6"/>
+<rect x="97" y="110" width="50" height="9"  rx="3" fill="#1565C0" opacity="0.4"/>
+<ellipse cx="122" cy="145" rx="22" ry="18" fill="rgba(21,101,192,0.15)"/>
+<!-- Egg -->
+<ellipse cx="210" cy="152" rx="38" ry="46" fill="#FFF9C4" opacity="0.96"/>
+<ellipse cx="200" cy="138" rx="12" ry="16" fill="rgba(255,255,255,0.45)" transform="rotate(-20 200 138)"/>
+<!-- Butter block -->
+<rect x="230" y="90" width="74" height="46" rx="8" fill="#FFEE58" opacity="0.92"/>
+<rect x="238" y="98" width="58" height="10" rx="3" fill="#F9A825" opacity="0.7"/>
+<!-- Cereal bowl -->
+<ellipse cx="148" cy="195" rx="55" ry="25" fill="#FF8F00" opacity="0.85"/>
+<ellipse cx="148" cy="185" rx="55" ry="18" fill="#FFB300" opacity="0.9"/>
+<ellipse cx="148" cy="183" rx="45" ry="12" fill="#FFF8E1" opacity="0.55"/>
+<!-- Bottom label -->
+<rect width="320" height="56" y="184" fill="rgba(0,0,0,0.45)"/>
+<text x="16" y="218" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="15" fill="#ffffff" font-weight="700">Dairy &amp; Breakfast</text>
+</svg>

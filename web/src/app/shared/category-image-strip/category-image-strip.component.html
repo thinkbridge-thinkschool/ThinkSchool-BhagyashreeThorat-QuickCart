@@ -1,0 +1,38 @@
+<div class="cis-wrapper" role="navigation" aria-label="Shop by category">
+  <div class="cis-strip">
+
+    <!-- All categories button -->
+    <button
+      class="cis-card"
+      [class.cis-card--active]="selected() === null"
+      (click)="select(null)"
+      [attr.aria-pressed]="selected() === null">
+      <div class="cis-img-wrap cis-img-wrap--all">
+        <div class="cis-all-icon">
+          <div class="cis-all-grid">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+      <span class="cis-label">All</span>
+    </button>
+
+    @for (card of cards; track card.category.categoryId) {
+      <button
+        class="cis-card"
+        [class.cis-card--active]="selected() === card.category.categoryId"
+        (click)="select(card.category.categoryId)"
+        [attr.aria-pressed]="selected() === card.category.categoryId">
+        <div class="cis-img-wrap">
+          <img
+            class="cis-img"
+            [src]="card.image"
+            [alt]="card.category.categoryName"
+            loading="lazy" />
+        </div>
+        <span class="cis-label">{{ card.category.categoryName }}</span>
+      </button>
+    }
+
+  </div>
+</div>

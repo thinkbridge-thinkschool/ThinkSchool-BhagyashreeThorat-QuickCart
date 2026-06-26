@@ -106,11 +106,12 @@ public class CartApiTests : IClassFixture<ApiFactory>
 
     private async Task<Guid> GetFirstAvailableProductIdAsync()
     {
-        var listResponse = await _client.GetAsync("/api/v1/products");
-        var products = JsonSerializer.Deserialize<JsonElement[]>(
-            await listResponse.Content.ReadAsStringAsync(), Json)!;
-        // Find a product that is available (stock > 0). Toothpaste has stock=0 in seed data.
-        var available = products.First(p => p.GetProperty("isAvailable").GetBoolean());
+        // GET /products now returns a paged envelope; extract .items.
+        var listResponse = await _client.GetAsync("/api/v1/products?pageSize=100");
+        var body = JsonSerializer.Deserialize<JsonElement>(
+            await listResponse.Content.ReadAsStringAsync(), Json);
+        var available = body.GetProperty("items").EnumerateArray()
+            .First(p => p.GetProperty("isAvailable").GetBoolean());
         return Guid.Parse(available.GetProperty("productId").GetString()!);
     }
 }

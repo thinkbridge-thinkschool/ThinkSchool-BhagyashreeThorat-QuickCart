@@ -1,9 +1,18 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/auth/auth.service';
 import { SearchState } from './core/state/search.service';
 import { CartState } from './core/state/cart-state.service';
+
+/** Cities where delivery is active. All others are shown greyed-out and non-clickable. */
+const ACTIVE_CITIES = new Set(['Pune']);
+
+const CITIES = [
+  'Pune',
+  'Mumbai', 'Delhi', 'Bangalore',
+  'Chennai', 'Hyderabad', 'Kolkata', 'Ahmedabad',
+];
 
 @Component({
   selector: 'app-root',
@@ -19,7 +28,16 @@ export class App {
 
   protected term = '';
 
+  // ── Location picker ──────────────────────────────────────────────────
+  protected readonly cities = CITIES;
+  protected readonly isActive = (city: string) => ACTIVE_CITIES.has(city);
+  protected readonly selectedCity = signal<string | null>(null);
+  protected readonly locationOpen = signal(false);
+
   constructor() {
+    // Sync the local term with SearchState so the input always reflects the real state.
+    this.term = this.search.term();
+
     // Once the user signs in, load the initial cart count for the badge.
     effect(() => {
       if (this.auth.account()) {
@@ -40,6 +58,11 @@ export class App {
     }
   }
 
-  login() { void this.auth.login(); }
+  protected selectCity(city: string): void {
+    this.selectedCity.set(city);
+    this.locationOpen.set(false);
+  }
+
+  login()  { void this.auth.login(); }
   logout() { void this.auth.logout(); }
 }

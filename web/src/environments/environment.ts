@@ -12,7 +12,7 @@ export const environment = {
   apiBaseUrl: 'http://localhost:5106/api/v1',
 
   auth: {
-    tenantId: '7e394fc8-4b86-4cfe-810e-43f86f8bec47',
+    tenantId: 'common',
     clientId: 'f58ac8a6-b34d-43f1-9593-3935cb98281d',
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',

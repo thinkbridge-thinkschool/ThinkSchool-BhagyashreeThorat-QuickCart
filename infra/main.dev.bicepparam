@@ -17,3 +17,7 @@ param sqlAdministratorLogin = 'quickcartadmin'
 //   az deployment group create ... -p infra/main.dev.bicepparam -p sqlAdministratorLoginPassword='<secret>'
 // or read from Key Vault. The line below is a placeholder for what-if only.
 param sqlAdministratorLoginPassword = readEnvironmentVariable('SQL_ADMIN_PASSWORD', 'ChangeMe-Dev-1234!')
+
+// Public identifier from the Entra app registration (not a secret).
+// Enables JWT validation on the deployed API so the Angular SWA can authenticate end-to-end.
+param entraClientId = 'f58ac8a6-b34d-43f1-9593-3935cb98281d'

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 124">
+
+  <!-- Speed / motion dashes (left of cart) -->
+  <rect x="0"  y="34" width="40" height="8"  rx="4"   fill="#1D4ED8"/>
+  <rect x="8"  y="48" width="30" height="7"  rx="3.5" fill="#1D4ED8"/>
+  <rect x="14" y="61" width="22" height="6"  rx="3"   fill="#1D4ED8"/>
+
+  <!-- Cart frame — blue strokes with round caps -->
+  <!-- Horizontal handle bar (top) -->
+  <line x1="48"  y1="22" x2="132" y2="22" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Right post of handle going down -->
+  <line x1="132" y1="22" x2="132" y2="46" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Top rail of basket -->
+  <line x1="56"  y1="46" x2="132" y2="46" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Left wall (angled outward slightly) -->
+  <line x1="56"  y1="46" x2="42"  y2="88" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Right wall -->
+  <line x1="132" y1="46" x2="144" y2="88" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Bottom rail -->
+  <line x1="42"  y1="88" x2="144" y2="88" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Front bumper (bottom-left short drop) -->
+  <line x1="42"  y1="88" x2="38"  y2="98" stroke="#1D4ED8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Wheels -->
+  <circle cx="62"  cy="113" r="12" fill="#1D4ED8"/>
+  <circle cx="122" cy="113" r="12" fill="#1D4ED8"/>
+
+  <!-- Yellow shopping bag inside cart basket -->
+  <!-- Bag body -->
+  <rect x="62" y="56" width="68" height="27" rx="6" fill="#F59E0B"/>
+  <!-- Bag handle arch (single bow) -->
+  <path d="M76 56 Q95 36 116 56"
+        stroke="#F59E0B" stroke-width="7"
+        fill="none" stroke-linecap="round"/>
+
+  <!-- "Quick" — bold blue -->
+  <text x="162" y="96"
+        font-family="'Segoe UI', Arial, Helvetica, sans-serif"
+        font-size="70" fill="#1D4ED8" font-weight="800">Quick</text>
+
+  <!-- "Cart" — bold gold -->
+  <text x="352" y="96"
+        font-family="'Segoe UI', Arial, Helvetica, sans-serif"
+        font-size="70" fill="#F59E0B" font-weight="800">Cart</text>
+
+</svg>
